@@ -1,0 +1,41 @@
+NOTICE
+======
+
+laptopapp is a development fork of Winlator.
+
+Original work
+-------------
+Winlator
+Copyright (c) brunodev85
+https://github.com/brunodev85/winlator
+Licensed under the GNU Lesser General Public License v2.1 (see LICENSE).
+
+This fork redistributes and modifies that source. All modifications remain
+under the same LGPL-2.1 terms.
+
+Vendored components (pinned revisions in scripts/upstream.env)
+--------------------------------------------------------------
+winlator-app  -> ./app      https://github.com/brunodev85/winlator-app
+vortek        -> ./vortek   https://github.com/brunodev85/vortek
+gladio        -> ./gladio   https://github.com/brunodev85/gladio
+
+Third-party software used by Winlator (per upstream README)
+-----------------------------------------------------------
+Wine                    https://www.winehq.org/            LGPL-2.1+
+Box86 / Box64           https://github.com/ptitSeb          MIT
+Mesa (Turnip/Zink/VirGL) https://www.mesa3d.org/            MIT
+DXVK                    https://github.com/doitsujin/dxvk   zlib
+VKD3D                   https://gitlab.winehq.org/wine/vkd3d LGPL-2.1+
+CNC DDraw               https://github.com/FunkyFr3sh/cnc-ddraw
+D7VK                    https://github.com/WinterSnowfall/d7vk
+GLIBC patches           https://github.com/termux-pacman/glibc-packages
+libadrenotools          vendored at app/app/src/main/cpp/libadrenotools
+  └─ liblinkernsbypass  https://github.com/bylaws/liblinkernsbypass
+                         vendored at .../libadrenotools/lib/linkernsbypass
+
+Binary artifacts not stored in this repository
+----------------------------------------------
+~480 MB of prebuilt binaries (*.tzst, *.msi, *.sf2, jniLibs/*.so) are fetched
+on demand by scripts/fetch-assets.sh from the pinned upstream commits and
+verified against scripts/assets.sha256. They are the property of their
+respective authors and are redistributed under the terms listed above.

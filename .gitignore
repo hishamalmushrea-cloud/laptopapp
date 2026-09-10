@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# Heavy binary artifacts — intentionally NOT in git (~480 MB).
+# Fetch them with:  scripts/fetch-assets.sh
+# ---------------------------------------------------------------------------
+*.tzst
+*.msi
+*.sf2
+
+wine_addons/*
+!wine_addons/.gitkeep
+
+app/app/src/main/assets/graphics_driver/*
+!app/app/src/main/assets/graphics_driver/.gitkeep
+
+app/app/src/main/assets/soundfont/*
+!app/app/src/main/assets/soundfont/.gitkeep
+
+app/app/src/main/jniLibs/arm64-v8a/*
+!app/app/src/main/jniLibs/arm64-v8a/.gitkeep
+
+# ---------------------------------------------------------------------------
+# Local caches created by scripts/*.sh
+# ---------------------------------------------------------------------------
+.cache/
+
+# ---------------------------------------------------------------------------
+# Android / Gradle / NDK build output
+# ---------------------------------------------------------------------------
+build/
+.gradle/
+.cxx/
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+captures/
+.externalNativeBuild/
+
+# ---------------------------------------------------------------------------
+# IDE
+# ---------------------------------------------------------------------------
+.idea/
+*.iml
+.DS_Store
