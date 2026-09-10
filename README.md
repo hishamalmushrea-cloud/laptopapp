@@ -38,6 +38,9 @@ cd app && ./gradlew assembleDebug
 
 التفاصيل الكاملة: **[docs/BUILD.md](docs/BUILD.md)** · البنية المعمارية: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
 
+> 📱 **تعمل من الهاتف؟** اقرأ **[docs/PHONE-WORKFLOW.md](docs/PHONE-WORKFLOW.md)** أولًا —
+> فيه كيف تعدّل وتجرّب وتبني بدون كمبيوتر.
+
 ---
 
 ## محتوى المستودع / Layout
