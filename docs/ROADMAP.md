@@ -6,8 +6,10 @@
 
 ### 1. CI + بصمات + توقيع
 - [x] `scripts/fetch-assets.sh` يتحقق من SHA-256 لكل ملف ثنائي (73 ملفًا).
-- [ ] GitHub Actions: `assembleDebug` على كل push + `assembleRelease` موقّع على كل وسم.
-- [ ] نشر `SHA256SUMS` مع كل إصدار + تعليمات تحقّق من التوقيع.
+- [x] `ci/build.yml` مكتوب ومختبَر الصيغة (وظيفتان: `assets` ثم `apk` مع نشر `SHA256SUMS.txt`).
+- [ ] **تفعيله**: `scripts/install-ci.sh` ثم push بتوكن يملك صلاحية `workflows`
+      (التوكن الآلي الحالي لا يملكها — GitHub رفض الـ push صراحةً).
+- [ ] إضافة `assembleRelease` موقّع على كل وسم.
 - [ ] *لماذا أولًا:* upstream بلا أي CI، وAPK بحجم ~150 MB يُبنى يدويًا، ونسخ "معدّلة"
       منتشرة. هذه أرخص طريقة لإغلاق أخطر ثغرة ثقة.
 

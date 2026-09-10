@@ -100,5 +100,7 @@ rm -rf .cache/upstream        # ذاكرة السكربتات (يمكن إبقا
 - سلامة بنية Gradle: `app/settings.gradle` (`include ':app'`)، و`gradle-wrapper.jar` موجود (59,821 بايت)، و`gradlew` قابل للتنفيذ.
 - `bash -n` على كل السكربتات، وتنفيذ `fetch-assets.sh --dry-run` و`--only` على ملفات حقيقية (نتائج موثّقة في نص المحادثة).
 - تطابق كل المسارات التي تقرأها الأصول مع `scripts/assets.sha256`.
+- `ci/build.yml` صالح YAML (وظيفتان: `assets` ‏4 خطوات، `apk` ‏10 خطوات ويعتمد على `assets`).
+  لم يُنفَّذ على GitHub Actions لأن التوكن الآلي لا يملك صلاحية `workflows`.
 
 أول بناء على جهاز فيه SDK هو الاختبار الحقيقي — سجّل أي فرق هنا.

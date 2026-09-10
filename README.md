@@ -67,6 +67,19 @@ docs/                     BUILD.md · ARCHITECTURE.md · ROADMAP.md
 | `scripts/fetch-assets.sh` | تنزيل الأصول الثنائية من الكوميت المثبّت + تحقق SHA-256. يدعم `--dry-run` و`--only` و`--force` و`--verify-only` |
 | `scripts/sync-upstream.sh` | مقارنة مع upstream وسرد الملفات المتغيّرة، و`--apply` لسحبها |
 | `scripts/refresh-checksums.sh` | إعادة توليد `scripts/assets.sha256` بعد تحديث الأصول |
+| `scripts/install-ci.sh` | تفعيل GitHub Actions (ينسخ `ci/build.yml` إلى `.github/workflows/`) |
+
+## البناء الآلي / CI
+
+`ci/build.yml` جاهز (وظيفتان: تحقق البصمات ثم بناء APK ونشر `SHA256SUMS.txt`)، لكنه
+موضوع في `ci/` لا في `.github/workflows/` لأن التوكن الآلي في هذه البيئة لا يملك صلاحية
+`workflows` وGitHub رفض الـ push صراحةً. فعّله بأمر واحد:
+
+```bash
+scripts/install-ci.sh && git add .github/workflows/build.yml && git commit -m "Enable CI" && git push
+```
+
+التفاصيل: **[ci/README.md](ci/README.md)**
 
 ---
 

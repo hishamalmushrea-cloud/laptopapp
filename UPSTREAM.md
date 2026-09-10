@@ -56,9 +56,9 @@ cd app && ./gradlew assembleDebug
 
 - `README.md` (أُعيدت كتابته)، `NOTICE`، `UPSTREAM.md`
 - `docs/` — `BUILD.md`, `ARCHITECTURE.md`, `ROADMAP.md`
-- `scripts/` — `fetch-assets.sh`, `sync-upstream.sh`, `refresh-checksums.sh`, `upstream.env`, `assets.sha256`
+- `scripts/` — `fetch-assets.sh`, `sync-upstream.sh`, `refresh-checksums.sh`, `install-ci.sh`, `upstream.env`, `assets.sha256`
+- `ci/` — `build.yml` (بناء آلي، غير موجود upstream إطلاقًا) + `README.md`
 - `.gitignore` الخاص بنا (يحلّ محل ملف upstream في الجذر)
-- `.github/workflows/` — بناء آلي (غير موجود upstream إطلاقًا)
 
 ## ملاحظات موثّقة أثناء الدمج
 
