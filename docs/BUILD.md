@@ -42,6 +42,12 @@ cd app
 ./gradlew assembleDebug
 ```
 
+> **خطأ في upstream أصلحناه هنا:** `gradlew` مسجّل في git بالوضع `100644` (غير قابل
+> للتنفيذ) في مستودع `winlator-app` نفسه — نفس blob sha ‏`1b6c787337ffb79f0e3cf8b1e9f00f680a959de1`.
+> لذلك `./gradlew` يفشل بـ **exit code 126** ("cannot execute"). هذا أول ما أسقط بناء CI
+> عندنا (run 34535792988). أصلحناه بـ `git update-index --chmod=+x app/gradlew`
+> فصار `100755`. لو بنيت من نسخة upstream الأصلية ستواجه نفس الخطأ.
+
 الناتج: `app/app/build/outputs/apk/debug/app-debug.apk`
 
 > **ملاحظة على `app/app/build.gradle`:** `minifyEnabled true` مفعّل داخل `buildType` الخاص
