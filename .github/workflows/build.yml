@@ -75,3 +75,36 @@ jobs:
           path: |
             app/app/build/outputs/apk/debug/*.apk
             SHA256SUMS.txt
+
+  publish:
+    name: Publish APK to Releases
+    runs-on: ubuntu-latest
+    needs: apk
+    # Manual runs only, so ordinary pushes do not spam releases.
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: winlator-debug-apk
+          path: dist
+
+      - name: Create GitHub Release with the APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag="dev-$(date -u +%Y%m%d)-${GITHUB_SHA:0:7}"
+          apk="Winlator-laptopapp-${tag}.apk"
+          cp dist/*.apk "$apk"
+          sha256sum "$apk" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          gh release create "$tag" "$apk" SHA256SUMS.txt \
+            --target "$GITHUB_REF_NAME" \
+            --title "Dev build ${tag}" \
+            --notes "Built by CI from \`${GITHUB_SHA}\` on \`${GITHUB_REF_NAME}\`.
+          Debug-signed APK — install it directly, no unzip needed." \
+            --prerelease
