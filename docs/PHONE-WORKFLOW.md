@@ -86,7 +86,6 @@ remote: refusing to allow a GitHub App to create or update workflow
 ---
 
 ## معلومات أحتاجها منك (مهمة جدًا لهذا المشروع بالذات)
-
 المشروع كله يدور حول نوع الكرت الرسومي — Vortek وTurnip وGladio لكل منها مسار مختلف:
 
 | المعلومة | لماذا |
@@ -108,3 +107,43 @@ remote: refusing to allow a GitHub App to create or update workflow
 - **إن أردت نسخة خاصة على GitHub باسمك:** ادخل على `brunodev85/winlator` واضغط **Fork**.
   أنا لا أستطيع إنشاء مستودعات جديدة — التوكن هنا مثبَّت على `laptopapp` فقط
   (تحقّقت: `gh api user` يعيد `403`، وقائمة المستودعات المتاحة تحتوي `laptopapp` وحده).
+
+---
+
+## جهاز مالك المستودع: Snapdragon 7s Gen 4 = Adreno 810
+
+مواصفات الكرت (مصادر عامة): **Adreno 810**، معمارية Adreno 800، ‏128 shading unit،
+Vulkan 1.3، OpenCL 3.0، أُعلن في أغسطس 2025.
+
+### أي مسار رسومي سيُختار؟ (مُتحقَّق من الكود)
+
+`GPUHelper.java:118`:
+
+```java
+public static short getAdrenoModelId(Context context) {
+    Matcher matcher = Pattern.compile("adreno[^678]*([678][0-9]{2})",
+        Pattern.CASE_INSENSITIVE).matcher(glGetRenderer(context));
+    return (short)(matcher.find() ? Integer.parseInt(matcher.group(1)) : 0);
+}
+```
+
+السلسلة `"Adreno 810"` تُطابَق: `adreno` ثم `[^678]*` تبتلع المسافة ثم `([678][0-9]{2})`
+تلتقط `810`. إذن القيمة **810 > 0**، ومنها في `GraphicsDrivers.getDefaultDriver()`:
+
+```java
+return GPUHelper.getAdrenoModelId(context) > 0
+    ? GraphicsDrivers.TURNIP + "," + GraphicsDrivers.DEFAULT_OPENGL_DRIVER   // ← مسارك
+    : GraphicsDrivers.VORTEK + "," + GraphicsDrivers.DEFAULT_OPENGL_DRIVER;
+```
+
+أي أن جهازك يأخذ تلقائيًا **`turnip,gladio`** — وهو المسار الأفضل دعمًا، لأن
+Winlator 11.0 شحن Mesa Turnip ‏v26.1.0 مع رقع `whitebelyash` لدعم **A8XX**
+(سلسلة Adreno 800). لا تحتاج تغيير أي إعداد.
+
+وتبعًا لذلك، `DefaultVersion.DXVK(vulkanDriver)` مع `turnip` تعيد دائمًا
+`MAJOR_DXVK = 2.4.1` (لا 1.10.3).
+
+### إن ظهرت مشكلة رسوم في لعبة
+
+جرّب بالترتيب: بدّل تعريف الرسوم إلى **Vortek** في إعدادات الحاوية وقارن،
+ثم Box64 preset إلى `Performance`، ثم أضف `MESA_EXTENSION_MAX_YEAR=2003` للألعاب القديمة.

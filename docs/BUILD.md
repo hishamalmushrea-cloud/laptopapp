@@ -92,15 +92,29 @@ cd app && ./gradlew clean
 rm -rf .cache/upstream        # ذاكرة السكربتات (يمكن إبقاؤها)
 ```
 
-## 6) ما الذي **لا** يمكن التحقق منه هنا
+## 6) لماذا لا يمكن البناء داخل بيئة Arena (موثّق بالقياس)
 
-في بيئة العمل الحالية لا يتوفر Android SDK/NDK، لذلك لم يُنفَّذ `assembleDebug` فعليًا.
-ما تم التحقق منه فعليًا:
+البيئة التي يعمل فيها الوكيل لا تصل إلا إلى قائمة سماح محدودة. نتائج `curl -w %{http_code}`:
 
-- سلامة بنية Gradle: `app/settings.gradle` (`include ':app'`)، و`gradle-wrapper.jar` موجود (59,821 بايت)، و`gradlew` قابل للتنفيذ.
-- `bash -n` على كل السكربتات، وتنفيذ `fetch-assets.sh --dry-run` و`--only` على ملفات حقيقية (نتائج موثّقة في نص المحادثة).
-- تطابق كل المسارات التي تقرأها الأصول مع `scripts/assets.sha256`.
-- `ci/build.yml` صالح YAML (وظيفتان: `assets` ‏4 خطوات، `apk` ‏10 خطوات ويعتمد على `assets`).
-  لم يُنفَّذ على GitHub Actions لأن التوكن الآلي لا يملك صلاحية `workflows`.
+| المضيف | المطلوب | النتيجة |
+|---|---|---|
+| `api.adoptium.net` | JDK 17 | فشل SSL (`SSL_ERROR_SYSCALL`) |
+| `dl.google.com` | Android SDK / NDK | `000` محجوب |
+| `services.gradle.org` | Gradle 8.14.5 | `000` محجوب |
+| `maven.google.com` | AGP 8.4.2 | `000` محجوب |
+| `repo1.maven.org` / `plugins.gradle.org` | تبعيات AndroidX | `000` محجوب |
+| `github.com` / `api.github.com` / `pypi.org` | — | `200` |
 
-أول بناء على جهاز فيه SDK هو الاختبار الحقيقي — سجّل أي فرق هنا.
+ولا يوجد JDK (`java: command not found`) ولا `sdkmanager`، و`/etc/apt/sources.list` فارغ.
+**النتيجة: `assembleDebug` لا يمكن تنفيذه هنا إطلاقًا** — البناء يتم إما عبر
+GitHub Actions (‏`ci/build.yml`) أو على جهاز فيه Android Studio.
+
+## 7) ما الذي **تم** التحقق منه فعليًا
+
+- سلامة بنية Gradle: `app/settings.gradle` (`include ':app'`)، و`gradle-wrapper.jar` موجود (59,821 بايت)، و`gradlew` قابل للتنفيذ، وصلاحيات `100755` محفوظة في git للسكربتات.
+- `bash -n` على كل السكربتات، وتنفيذ حقيقي لـ `fetch-assets.sh`: تنزيل `pulseaudio.tzst` (45,548 بايت) و`libpulseaudio.so` (80,312) و`wine-gecko-2.47.4-x86_64.msi` (53,898,752) ثم `sha256sum -c` = **OK** للثلاثة.
+- **اختبار سلبي:** إفساد بايت واحد جعل التحقق يفشل ويعيد exit code 1.
+- `ci/build.yml` صالح YAML (وظيفتان: `assets` ‏4 خطوات ← `apk` ‏10 خطوات).
+- **لم يُنفَّذ على Actions** لأن التوكن الآلي لا يملك صلاحية `workflows` (رسالة الرفض موثّقة في `ci/README.md`).
+
+أول بناء على Actions أو على جهاز فيه SDK هو الاختبار الحقيقي — سجّل أي فرق هنا.
