@@ -93,11 +93,21 @@ jobs:
           name: winlator-debug-apk
           path: dist
 
+      # NOTE: the sandbox this repo is maintained from cannot read Actions logs
+      # (results-receiver.actions.githubusercontent.com is not reachable), but it
+      # CAN read check-run annotations via api.github.com. So any failure here is
+      # re-emitted as an ::error annotation to stay debuggable.
       - name: Create GitHub Release with the APK
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
+          set -eo pipefail
+          echo "--- environment ---"
+          gh --version | head -1
+          gh auth status 2>&1 | head -5 || true
+          echo "GITHUB_REF=$GITHUB_REF  GITHUB_REF_NAME=$GITHUB_REF_NAME"
+          ls -la dist
+
           case "$GITHUB_REF" in
             refs/tags/*) tag="$GITHUB_REF_NAME"; target_args=() ;;
             *)           tag="dev-$(date -u +%Y%m%d)-${GITHUB_SHA:0:7}"
@@ -107,9 +117,18 @@ jobs:
           cp dist/*.apk "$apk"
           sha256sum "$apk" > SHA256SUMS.txt
           cat SHA256SUMS.txt
-          gh release create "$tag" "$apk" SHA256SUMS.txt \
-            "${target_args[@]}" \
-            --title "Build ${tag}" \
-            --notes "Built by CI from \`${GITHUB_SHA}\`.
-          Debug-signed APK - install it directly, no unzip needed." \
-            --prerelease
+
+          echo "--- gh release create ---"
+          if out=$(gh release create "$tag" "$apk" SHA256SUMS.txt \
+                     ${target_args[@]+"${target_args[@]}"} \
+                     --title "Build ${tag}" \
+                     --notes "Built by CI from ${GITHUB_SHA}. Debug-signed APK, install directly." \
+                     --prerelease 2>&1); then
+            echo "$out"
+          else
+            rc=$?
+            echo "$out"
+            flat=$(printf '%s' "$out" | tr '\n\r' '  ' | cut -c1-800)
+            echo "::error title=gh release create failed (exit ${rc})::${flat}"
+            exit "$rc"
+          fi
