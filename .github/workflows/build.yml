@@ -4,6 +4,8 @@ on:
   push:
     branches: ['**']
     tags: ['v*', 'dev-*']
+    # Docs-only commits do not need a 3.5 minute NDK build.
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
   workflow_dispatch:
 

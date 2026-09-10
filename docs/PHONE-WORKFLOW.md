@@ -54,36 +54,43 @@
 
 ---
 
-## كيف تفعّل CI من الهاتف
+## ✅ CI مفعَّل الآن — كيف تحصل على APK
 
-### الطريقة 1 (الأسهل): أعطِ الصلاحية ثم أخبرني
+تم التفعيل والبناء بنجاح. الدليل (run `34537609826` على الوسم `dev-20260911-3`):
 
-GitHub رفض دفعتي لأن التوكن الآلي لا يملك صلاحية `workflows`. الرسالة الحرفية:
+| الوظيفة | النتيجة |
+|---|---|
+| Verify artifact checksums (‏73 ملفًا) | ✅ success |
+| Build debug APK | ✅ success |
+| Publish APK to Releases | ✅ success |
 
+**الإصدار المنشور:**
+`https://github.com/hishamalmushrea-cloud/laptopapp/releases/tag/dev-20260911-3`
+
+- الملف: `Winlator-laptopapp-dev-20260911-3.apk` — **157,362,543 بايت (150.1 MB)**
+- معه `SHA256SUMS.txt` للتحقق
+- المستودع عام، فالتنزيل **لا يحتاج تسجيل دخول**
+
+### تنزيله على هاتفك
+
+1. افتح الرابط أعلاه
+2. اضغط اسم ملف الـ `.apk`
+3. وافق على «التثبيت من مصادر غير معروفة» عند الطلب
+
+⚠️ **تنبيهات:**
+- 150 MB — استخدم واي فاي.
+- موقّع بمفتاح debug. إن نزّلت لاحقًا بناءً بمفتاح مختلف، **احذف التطبيق أولًا** وإلا رفض أندرويد التحديث.
+- هذا البناء مطابق حاليًا لـ Winlator 11.2 (لم نغيّر كودًا بعد). قيمته أن **أي تعديل قادم** سيُنتج APK تلقائيًا.
+
+### كيف تطلب بناءً جديدًا
+
+فقط اطلب مني التعديل. بعد الدفع أنشئ وسمًا فينطلق البناء:
+
+```bash
+git tag -a dev-YYYYMMDD-N -m "..." && git push origin dev-YYYYMMDD-N
 ```
-remote: refusing to allow a GitHub App to create or update workflow
-        `.github/workflows/build.yml` without `workflows` permission
-```
 
-الخطوات من متصفح هاتفك:
-
-1. افتح `https://github.com/hishamalmushrea-cloud/laptopapp/settings/installations`
-2. اختر تطبيق **Arena** ثم **Configure**
-3. انزل إلى **Repository permissions**
-4. **Workflows** ← غيّر من `No access` إلى **Read and write**
-5. **Save**
-6. اكتب لي هنا: «فعّلت الصلاحية» — وأنا أدفع الملف وأراقب أول بناء
-
-### الطريقة 2: أنشئ الملف بنفسك من موقع GitHub
-
-1. افتح المستودع على فرع `arena/01a08d26-laptopapp`
-2. **Add file** ← **Create new file**
-3. في خانة الاسم اكتب بالضبط: `.github/workflows/build.yml`
-   (كتابة `/` تنشئ المجلدات تلقائيًا)
-4. انسخ محتوى `ci/build.yml` والصقه
-5. **Commit changes**
-
----
+كل بناء يستغرق ~3.5 دقيقة (قياس فعلي: ‏22:28 → 22:31 UTC).
 
 ## معلومات أحتاجها منك (مهمة جدًا لهذا المشروع بالذات)
 المشروع كله يدور حول نوع الكرت الرسومي — Vortek وTurnip وGladio لكل منها مسار مختلف:

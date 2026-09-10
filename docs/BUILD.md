@@ -124,3 +124,37 @@ GitHub Actions (‏`ci/build.yml`) أو على جهاز فيه Android Studio.
 - **لم يُنفَّذ على Actions** لأن التوكن الآلي لا يملك صلاحية `workflows` (رسالة الرفض موثّقة في `ci/README.md`).
 
 أول بناء على Actions أو على جهاز فيه SDK هو الاختبار الحقيقي — سجّل أي فرق هنا.
+
+## 8) البناء والنشر عبر CI (مُجرَّب وناجح)
+
+الوسم هو الزناد — لا حاجة لصلاحية `actions:write`:
+
+```bash
+git tag -a dev-YYYYMMDD-N -m "..."
+git push origin dev-YYYYMMDD-N
+```
+
+فينشأ إصدار في `releases/` يحتوي الـ APK + `SHA256SUMS.txt` (تنزيل مباشر بلا تسجيل دخول
+وبلا فك ضغط — بعكس artifact الذي يأتي مضغوطًا ويتطلب دخولًا).
+
+### أول تشغيل ناجح (موثّق)
+
+| البيان | القيمة |
+|---|---|
+| الوسم | `dev-20260911-3` |
+| Run | `34537609826` |
+| الوظائف الثلاث | success / success / success |
+| الـ APK | `Winlator-laptopapp-dev-20260911-3.apk` — 157,362,543 بايت |
+| المدة | ~3.5 دقيقة لكل البناء |
+
+### خطأان أُصلحا في الطريق
+
+1. **exit 126 في خطوة Build:** `gradlew` كان `100644` في upstream نفسه (§3 أعلاه).
+2. **exit 1 في خطوة Publish:** `upload-artifact@v4` بمسارين يحفظهما نسبةً إلى
+   *الجذر المشترك*، فالـ APK نزل في `dist/app/app/build/outputs/apk/debug/` وليس في
+   `dist/` مباشرة — و`cp dist/*.apk` لم يطابق شيئًا. الحل: `find dist -name '*.apk' -print -quit`.
+
+> **ملاحظة تشغيلية:** سجلّات Actions تُخدَم من `results-receiver.actions.githubusercontent.com`
+> وهو غير متاح من بيئة الصيانة، بينما **تنبيهات check-run** تُقرأ عبر `api.github.com`.
+> لذا كل نقطة فشل في خطوة النشر تُصدر `::error` annotation — وهذا ما جعل تشخيص
+> الخطأ الثاني ممكنًا. حافظ على هذا النمط عند تعديل الـ workflow.
