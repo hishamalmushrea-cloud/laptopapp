@@ -69,6 +69,30 @@ jobs:
         working-directory: app
         run: ./gradlew --no-daemon testDebugUnitTest
 
+      # A green "Unit tests" step only proves Gradle did not fail; this proves how many
+      # tests actually executed, and fails the build if that number is zero.
+      - name: Report executed tests
+        working-directory: app
+        run: |
+          shopt -s nullglob
+          files=(app/build/test-results/testDebugUnitTest/TEST-*.xml)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no test results were produced - nothing was executed"
+            exit 1
+          fi
+          total=0; bad=0
+          for f in "${files[@]}"; do
+            cls=$(basename "$f" .xml); cls=${cls#TEST-}
+            t=$(sed -n 's/.*<testsuite[^>]* tests="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            fl=$(sed -n 's/.*<testsuite[^>]* failures="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            er=$(sed -n 's/.*<testsuite[^>]* errors="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            sk=$(sed -n 's/.*<testsuite[^>]* skipped="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            total=$((total + ${t:-0})); bad=$((bad + ${fl:-0} + ${er:-0} + ${sk:-0}))
+            echo "$cls: ${t:-0} tests"
+          done
+          echo "Executed $total tests across ${#files[@]} classes ($bad failures/errors/skips)"
+          [ "$total" -gt 0 ] || { echo "::error::no tests were executed"; exit 1; }
+
       - name: Build
         working-directory: app
         run: ./gradlew --no-daemon assembleDebug
