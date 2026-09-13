@@ -248,7 +248,7 @@ public abstract class TarCompressorUtils {
         return null;
     }
 
-    private static OutputStream getCompressorOutputStream(Type type, OutputStream destination, int level) {
+    private static OutputStream getCompressorOutputStream(Type type, OutputStream destination, int level) throws IOException {
         if (type == Type.XZ) {
             return new XZCompressorOutputStream(new BufferedOutputStream(destination, StreamUtils.BUFFER_SIZE), level);
         }
