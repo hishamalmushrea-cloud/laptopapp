@@ -3,6 +3,7 @@ package com.winlator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -103,7 +104,7 @@ public class ContainersFragment extends Fragment {
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
             intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/zstd", "application/octet-stream", "application/x-zstd"});
-            startActivityFromFragment(this, intent, IMPORT_CONTAINER_REQUEST_CODE);
+            getActivity().startActivityFromFragment(this, intent, IMPORT_CONTAINER_REQUEST_CODE);
             return true;
         }
         else return super.onOptionsItemSelected(menuItem);
@@ -223,7 +224,7 @@ public class ContainersFragment extends Fragment {
                         exportIntent.addCategory(Intent.CATEGORY_OPENABLE);
                         exportIntent.setType("application/zstd");
                         exportIntent.putExtra(Intent.EXTRA_TITLE, container.getName().replaceAll("[^A-Za-z0-9._ -]", "_")+".tzst");
-                        startActivityFromFragment(ContainersFragment.this, exportIntent, EXPORT_CONTAINER_REQUEST_CODE);
+                        activity.startActivityFromFragment(ContainersFragment.this, exportIntent, EXPORT_CONTAINER_REQUEST_CODE);
                         break;
                     case R.id.menu_item_info:
                         (new StorageInfoDialog(activity, container)).show();
