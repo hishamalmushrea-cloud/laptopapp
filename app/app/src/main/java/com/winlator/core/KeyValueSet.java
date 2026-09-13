@@ -24,6 +24,14 @@ public class KeyValueSet implements Iterable<String[]> {
 
         while (start < end) {
             int index = data.indexOf("=", start);
+            // A segment without "=" (malformed/imported data) used to make
+            // substring(start, -1) throw StringIndexOutOfBoundsException.
+            if (index == -1 || index > end) {
+                start = end+1;
+                end = data.indexOf(",", start);
+                if (end == -1) end = data.length();
+                continue;
+            }
             String currKey = data.substring(start, index);
             if (currKey.equals(key)) return new int[]{start, end};
             start = end+1;
@@ -108,7 +116,6 @@ public class KeyValueSet implements Iterable<String[]> {
         int index = data.indexOf(",");
         final int[] start = {0};
         final int[] end = {index != -1 ? index : data.length()};
-        final String[] item = new String[2];
         return new Iterator<String[]>() {
             @Override
             public boolean hasNext() {
@@ -117,9 +124,18 @@ public class KeyValueSet implements Iterable<String[]> {
 
             @Override
             public String[] next() {
+                // A fresh array every time: the shared instance used to make every
+                // element collected by a caller alias the last one parsed.
+                final String[] item = new String[2];
                 int index = data.indexOf("=", start[0]);
-                item[0] = data.substring(start[0], index);
-                item[1] = data.substring(index+1, end[0]);
+                if (index == -1 || index > end[0]) {
+                    item[0] = data.substring(start[0], end[0]);
+                    item[1] = "";
+                }
+                else {
+                    item[0] = data.substring(start[0], index);
+                    item[1] = data.substring(index+1, end[0]);
+                }
                 start[0] = end[0]+1;
                 end[0] = data.indexOf(",", start[0]);
                 if (end[0] == -1) end[0] = data.length();
