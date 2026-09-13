@@ -3,6 +3,7 @@ package com.winlator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -29,12 +31,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.winlator.container.Container;
 import com.winlator.core.AppUtils;
+import com.winlator.core.FileUtils;
+import com.winlator.core.WineLogCapture;
 import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.StorageInfoDialog;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.xenvironment.RootFS;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -225,6 +230,25 @@ public class ContainersFragment extends Fragment {
                         exportIntent.setType("application/zstd");
                         exportIntent.putExtra(Intent.EXTRA_TITLE, container.getName().replaceAll("[^A-Za-z0-9._ -]", "_")+".tzst");
                         activity.startActivityFromFragment(ContainersFragment.this, exportIntent, EXPORT_CONTAINER_REQUEST_CODE);
+                        break;
+                    case R.id.menu_item_wine_log:
+                        File logFile = WineLogCapture.getFile(container.getRootDir());
+                        if (logFile.isFile() && logFile.length() > 0) {
+                            ContentDialog logDialog = new ContentDialog(activity);
+                            logDialog.setTitle(R.string.wine_log);
+                            FrameLayout logFrame = logDialog.getContentView().findViewById(R.id.FrameLayout);
+                            logFrame.setVisibility(View.VISIBLE);
+                            TextView logText = new TextView(activity);
+                            logText.setTypeface(Typeface.MONOSPACE);
+                            logText.setTextSize(10);
+                            logText.setTextIsSelectable(true);
+                            logText.setText(FileUtils.readString(logFile));
+                            ScrollView logScroll = new ScrollView(activity);
+                            logScroll.addView(logText);
+                            logFrame.addView(logScroll, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                            logDialog.show();
+                        }
+                        else ContentDialog.alert(getContext(), R.string.no_wine_log_yet, null);
                         break;
                     case R.id.menu_item_info:
                         (new StorageInfoDialog(activity, container)).show();

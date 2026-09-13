@@ -52,6 +52,7 @@ import com.winlator.core.KeyValueSet;
 import com.winlator.core.LocaleHelper;
 import com.winlator.core.PreloaderDialog;
 import com.winlator.core.ProcessHelper;
+import com.winlator.core.WineLogCapture;
 import com.winlator.core.StringUtils;
 import com.winlator.core.TarCompressorUtils;
 import com.winlator.core.Win32AppWorkarounds;
@@ -107,6 +108,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
     private XEnvironment environment;
     private DrawerLayout drawerLayout;
     private Container container;
+    private WineLogCapture wineLogCapture;
     private XServer xServer;
     private InputControlsManager inputControlsManager;
     private RootFS rootFS;
@@ -166,6 +168,13 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
             ContainerManager containerManager = new ContainerManager(this);
             container = containerManager.getContainerById(getIntent().getIntExtra("container_id", 0));
             containerManager.activateContainer(container);
+
+            // Persist the process output even when the on-screen debug dialog is off, so a
+            // crash still leaves something to diagnose (upstream #2001).
+            if (container != null) {
+                wineLogCapture = new WineLogCapture(WineLogCapture.getFile(container.getRootDir()));
+                ProcessHelper.addDebugCallback(wineLogCapture);
+            }
 
             boolean wineprefixNeedsUpdate = container.getExtra("wineprefixNeedsUpdate").equals("t");
             if (wineprefixNeedsUpdate) {
@@ -326,6 +335,7 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
 
     @Override
     protected void onDestroy() {
+        if (wineLogCapture != null) wineLogCapture.close();
         winHandler.stop();
         if (environment != null) environment.stopEnvironmentComponents();
         super.onDestroy();

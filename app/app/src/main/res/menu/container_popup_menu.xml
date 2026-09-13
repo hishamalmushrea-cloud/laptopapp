@@ -4,6 +4,9 @@
     <item android:id="@+id/menu_item_edit" android:title="@string/edit" android:icon="@drawable/icon_popup_menu_edit" android:iconTint="?attr/colorAccent" />
     <item android:id="@+id/menu_item_duplicate" android:title="@string/duplicate" android:icon="@drawable/icon_popup_menu_duplicate" android:iconTint="?attr/colorAccent" />
     <item android:id="@+id/menu_item_remove" android:title="@string/remove" android:icon="@drawable/icon_popup_menu_remove" android:iconTint="?attr/colorAccent" />
+    <item android:id="@+id/menu_item_wine_log"
+          android:title="@string/wine_log"
+          android:icon="@drawable/icon_popup_menu_folder_list" />
     <item android:id="@+id/menu_item_export"
           android:title="@string/export_container"
           android:icon="@drawable/icon_popup_menu_download" />
