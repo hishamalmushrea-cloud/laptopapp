@@ -80,6 +80,12 @@
                     <View style="@style/FieldSeparator" />
 
                     <CheckBox
+                        android:id="@+id/CBTouchScreenMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/touch_screen_mode" />
+
+                    <CheckBox
                         android:id="@+id/CBMoveCursorToTouchpoint"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

@@ -197,6 +197,7 @@
     <string name="copying_files">جارٍ نسخ الملفات…</string>
     <string name="removing_files">جارٍ إزالة الملفات…</string>
     <string name="disable_mouse_input">تعطيل إدخال الفأرة</string>
+    <string name="touch_screen_mode">وضع شاشة اللمس (الإصبع يعمل كمؤشر)</string>
     <string name="move_cursor_to_touchpoint">نقل المؤشر إلى نقطة اللمس</string>
     <string name="sync_every_frame">مزامنة كل إطار</string>
     <string name="dpi_font_size">DPI (حجم الخط)</string>

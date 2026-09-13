@@ -33,6 +33,14 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     private boolean pointerButtonLeftEnabled = true;
     private boolean pointerButtonRightEnabled = true;
     private boolean moveCursorToTouchpoint = false;
+    private boolean touchScreenMode = false;
+    private static final short LONG_PRESS_MILLISECONDS = 500;
+    private static final float MIN_ZOOM_DISTANCE_DELTA = 40.0f;
+    private final Finger[] gestureFingers = new Finger[2];
+    private float lastPinchDistance = 0;
+    private boolean pinchZooming = false;
+    private Finger activeTouchFinger;
+    private Finger longPressFinger;
     private Finger fingerPointerButtonLeft;
     private Finger fingerPointerButtonRight;
     private float scrollAccumY = 0;
@@ -140,6 +148,11 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
         int pointerId = event.getPointerId(actionIndex);
         int actionMasked = event.getActionMasked();
         if (pointerId >= MAX_FINGERS) return true;
+
+        // An external mouse still behaves like a mouse; only finger input is reinterpreted.
+        if (touchScreenMode && !event.isFromSource(InputDevice.SOURCE_MOUSE)) {
+            return onTouchScreenEvent(event);
+        }
 
         switch (actionMasked) {
             case MotionEvent.ACTION_DOWN:
@@ -264,6 +277,154 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
         }
     }
 
+    // ---------------------------------------------------------------------------------
+    // Touch screen mode
+    //
+    // Touchpad mode moves the cursor relatively, which suits a mouse replacement but not
+    // apps built for touch: a drag never holds a button, so drag-and-drop, painting and
+    // moving windows by their title bar cannot work.
+    //
+    // This mode makes the finger the pointer instead - press on contact, follow while
+    // held, release on lift-off - which is what a real digitizer does. Windows still
+    // receives ordinary mouse events: the bundled X server has no XInput extension, so it
+    // cannot deliver XI 2.2 touch events and WM_TOUCH/WM_POINTER are not reachable. See
+    // docs/ROADMAP.md for what real Windows touch would require.
+    // ---------------------------------------------------------------------------------
+
+    private boolean onTouchScreenEvent(MotionEvent event) {
+        int actionIndex = event.getActionIndex();
+        int pointerId = event.getPointerId(actionIndex);
+
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                scrollAccumY = 0;
+                pinchZooming = false;
+                activeTouchFinger = new Finger(event.getX(actionIndex), event.getY(actionIndex));
+                fingers[pointerId] = activeTouchFinger;
+                numFingers = 1;
+                beginTouch(activeTouchFinger);
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                fingers[pointerId] = new Finger(event.getX(actionIndex), event.getY(actionIndex));
+                numFingers++;
+                // A second finger means a gesture rather than a touch, so give up the
+                // press first: otherwise every pinch and scroll would start as a drag.
+                removeCallbacks(longPressRunnable);
+                releaseTouchButtons();
+                if (numFingers == 2) lastPinchDistance = pinchDistance();
+                else if (numFingers == 4 && fourFingersTapCallback != null) {
+                    // Keep the way out of a full-screen app that touchpad mode provides.
+                    fourFingersTapCallback.run();
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                for (byte i = 0; i < MAX_FINGERS; i++) {
+                    if (fingers[i] == null) continue;
+                    int index = event.findPointerIndex(i);
+                    if (index < 0) continue;
+                    fingers[i].update(event.getX(index), event.getY(index));
+                }
+                if (numFingers == 1 && activeTouchFinger != null && !pinchZooming) {
+                    if (isEnabled()) xServer.injectPointerMove(activeTouchFinger.x, activeTouchFinger.y);
+                }
+                else if (numFingers >= 2) handleTouchScreenGesture();
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                if (fingers[pointerId] != null) {
+                    fingers[pointerId] = null;
+                    numFingers--;
+                }
+                pinchZooming = false;
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                removeCallbacks(longPressRunnable);
+                for (byte i = 0; i < MAX_FINGERS; i++) fingers[i] = null;
+                numFingers = 0;
+                activeTouchFinger = null;
+                releaseTouchButtons();
+                break;
+        }
+        return true;
+    }
+
+    private void beginTouch(Finger finger) {
+        if (isEnabled()) xServer.injectPointerMove(finger.x, finger.y);
+        pressPointerButtonLeft(finger);
+        longPressFinger = finger;
+        postDelayed(longPressRunnable, LONG_PRESS_MILLISECONDS);
+    }
+
+    /** A finger held still long enough becomes a right click instead of a left one. */
+    private final Runnable longPressRunnable = () -> {
+        Finger finger = longPressFinger;
+        if (finger == null || numFingers != 1 || finger.travelDistance() > MAX_TAP_TRAVEL_DISTANCE) return;
+        if (xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_LEFT)) {
+            xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
+            fingerPointerButtonLeft = null;
+        }
+        pressPointerButtonRight(finger);
+    };
+
+    private void releaseTouchButtons() {
+        if (fingerPointerButtonLeft != null) releasePointerButtonLeft(fingerPointerButtonLeft);
+        if (fingerPointerButtonRight != null) releasePointerButtonRight(fingerPointerButtonRight);
+        longPressFinger = null;
+    }
+
+    /** The two fingers closest to being the gesture, or fewer when only one is down. */
+    private boolean findGestureFingers() {
+        gestureFingers[0] = null;
+        gestureFingers[1] = null;
+        for (byte i = 0; i < MAX_FINGERS; i++) {
+            if (fingers[i] == null) continue;
+            if (gestureFingers[0] == null) gestureFingers[0] = fingers[i];
+            else {
+                gestureFingers[1] = fingers[i];
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private float pinchDistance() {
+        if (!findGestureFingers() || gestureFingers[1] == null) return 0;
+        return (float)Math.hypot(gestureFingers[0].x - gestureFingers[1].x, gestureFingers[0].y - gestureFingers[1].y);
+    }
+
+    private void handleTouchScreenGesture() {
+        if (!findGestureFingers() || gestureFingers[1] == null) return;
+        Finger first = gestureFingers[0];
+        Finger second = gestureFingers[1];
+
+        float distance = (float)Math.hypot(first.x - second.x, first.y - second.y);
+        float delta = distance - lastPinchDistance;
+
+        if (Math.abs(delta) >= MIN_ZOOM_DISTANCE_DELTA) {
+            // A pinch is reported as the mouse wheel, which is what browsers, image
+            // viewers and most zoomable apps already bind zoom to.
+            injectWheel(delta > 0 ? Pointer.Button.BUTTON_SCROLL_UP : Pointer.Button.BUTTON_SCROLL_DOWN);
+            lastPinchDistance = distance;
+            pinchZooming = true;
+            return;
+        }
+
+        scrollAccumY += ((first.y + second.y) * 0.5f) - (first.lastY + second.lastY) * 0.5f;
+        if (scrollAccumY < -100) {
+            injectWheel(Pointer.Button.BUTTON_SCROLL_DOWN);
+            scrollAccumY = 0;
+        }
+        else if (scrollAccumY > 100) {
+            injectWheel(Pointer.Button.BUTTON_SCROLL_UP);
+            scrollAccumY = 0;
+        }
+    }
+
+    private void injectWheel(Pointer.Button button) {
+        xServer.injectPointerButtonPress(button);
+        xServer.injectPointerButtonRelease(button);
+    }
+
     public void mouseMove(float x, float y, int action) {
         switch (action) {
             case MotionEvent.ACTION_DOWN:
@@ -351,6 +512,14 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
 
     public void setMoveCursorToTouchpoint(boolean moveCursorToTouchpoint) {
         this.moveCursorToTouchpoint = moveCursorToTouchpoint;
+    }
+
+    public boolean isTouchScreenMode() {
+        return touchScreenMode;
+    }
+
+    public void setTouchScreenMode(boolean touchScreenMode) {
+        this.touchScreenMode = touchScreenMode;
     }
 
     public boolean onExternalMouseEvent(MotionEvent event) {

@@ -126,6 +126,9 @@ public class SettingsFragment extends Fragment {
         final int oldAppThemeId = preferences.getInt("app_theme", APP_THEME_DARK) == APP_THEME_DARK ? R.id.RBDark : R.id.RBLight;
         rgAppTheme.check(oldAppThemeId);
 
+        final CheckBox cbTouchScreenMode = view.findViewById(R.id.CBTouchScreenMode);
+        cbTouchScreenMode.setChecked(preferences.getBoolean("touch_screen_mode", false));
+
         final CheckBox cbMoveCursorToTouchpoint = view.findViewById(R.id.CBMoveCursorToTouchpoint);
         cbMoveCursorToTouchpoint.setChecked(preferences.getBoolean("move_cursor_to_touchpoint", false));
 
@@ -191,6 +194,7 @@ public class SettingsFragment extends Fragment {
             editor.putString("soundfont", sSoundFont.getSelectedItem().toString());
             editor.putString("box64_version", StringUtils.parseIdentifier(sBox64Version.getSelectedItem()));
             editor.putString("box64_preset", Box64PresetManager.getSpinnerSelectedId(sBox64Preset));
+            editor.putBoolean("touch_screen_mode", cbTouchScreenMode.isChecked());
             editor.putBoolean("move_cursor_to_touchpoint", cbMoveCursorToTouchpoint.isChecked());
             editor.putBoolean("capture_pointer_on_external_mouse", cbCapturePointerOnExternalMouse.isChecked());
             editor.putFloat("cursor_speed", sbCursorSpeed.getValue() / 100.0f);
