@@ -91,6 +91,9 @@ jobs:
             echo "$cls: ${t:-0} tests"
           done
           echo "Executed $total tests across ${#files[@]} classes ($bad failures/errors/skips)"
+          # Annotations are the part of a run that stays readable through the API after
+          # the raw logs have expired, so the count is published there too.
+          echo "::notice title=Unit tests::Executed $total tests across ${#files[@]} classes ($bad failures/errors/skips)"
           [ "$total" -gt 0 ] || { echo "::error::no tests were executed"; exit 1; }
 
       - name: Build
