@@ -10,7 +10,10 @@ import androidx.preference.PreferenceManager;
 import java.util.Locale;
 
 public class LocaleHelper {
-    private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU"};
+    // Order matters: this array is index-aligned with res/values/arrays.xml
+    // language_entries and with the persisted "lc_index" preference, so new
+    // locales must be APPENDED, never inserted.
+    private static final String[] supportedLocales = {"en_US", "pt_BR", "ru_RU", "ar_SA"};
 
     public static int getLocaleIndex(Context context) {
         Configuration configuration = context.getResources().getConfiguration();
