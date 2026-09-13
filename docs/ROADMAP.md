@@ -4,6 +4,17 @@
 
 ## المرحلة 0 — الثقة (لا ميزات جديدة قبلها)
 
+### 0. تحقق من سلامة المكوّنات المُنزَّلة — **تم**
+- [x] كان `GeneralComponents.java:28` ينزّل من فرع `main` المتحرّك **بلا أي تحقق**
+      (لا `MessageDigest` ولا `sha256` في كل الـ 267 ملف Java).
+- [x] الرابط ثُبِّت على كوميت، وأُضيف `ComponentChecksums` + `assets/component_checksums.json`
+      (‏19 بصمة من `scripts/assets.sha256`). الملف المرفوض يُحذف ولا يُثبَّت.
+- [x] التجزئة تعمل خارج خيط الواجهة (‏`HttpUtils` يسلّم النتيجة عبر `runOnUiThread`).
+
+### 0ب. واجهة عربية — **تم**
+- [x] `values-ar/strings.xml` ‏(‏286 نصًا = كل القابل للترجمة)، و`android:supportsRtl="true"`
+      الذي كان **مفقودًا** — بدونه كانت العربية ستُعرض من اليسار لليمين.
+
 ### 1. CI + بصمات + توقيع
 - [x] `scripts/fetch-assets.sh` يتحقق من SHA-256 لكل ملف ثنائي (73 ملفًا).
 - [x] `ci/build.yml` مكتوب ومختبَر الصيغة (وظيفتان: `assets` ثم `apk` مع نشر `SHA256SUMS.txt`).
@@ -13,10 +24,11 @@
 - [ ] *لماذا أولًا:* upstream بلا أي CI، وAPK بحجم ~150 MB يُبنى يدويًا، ونسخ "معدّلة"
       منتشرة. هذه أرخص طريقة لإغلاق أخطر ثغرة ثقة.
 
-### 2. اختبارات لل منطق القابل للاختبار
-- [ ] نقطة بداية واقعية (بلا أدوات محاكاة): `GraphicsDrivers.parseIdentifiers/parseConfigs`,
-      `DefaultVersion.DXVK(...)`, `KeyValueSet` — منطق نصّي خالص، مثالي لـ JUnit.
-- [ ] لا يوجد حاليًا أي `test/` أو `androidTest/` ولا تبعية junit (تحقّقنا).
+### 2. اختبارات للمنطق القابل للاختبار — **بدأ**
+- [x] `junit 4.13.2` + `ChecksumUtilsTest` (‏7 حالات) + خطوة `testDebugUnitTest` في CI
+      قبل `assembleDebug`. أول اختبار ناجح في تاريخ المشروع.
+- [ ] الخطوة التالية: `GraphicsDrivers.parseIdentifiers/parseConfigs`،
+      `DefaultVersion.DXVK(...)`، `KeyValueSet` — منطق نصّي خالص لا يحتاج محاكيًا.
 
 ## المرحلة 1 — ميزات مطلوبة مجتمعيًا (من قضايا upstream)
 
