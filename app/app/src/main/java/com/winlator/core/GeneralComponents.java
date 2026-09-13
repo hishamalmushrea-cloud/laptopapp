@@ -22,10 +22,23 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.Executors;
 
 public abstract class GeneralComponents {
     public enum InstallMode {DOWNLOAD, FILE, BOTH}
-    private static final String INSTALLABLE_COMPONENTS_URL = "https://raw.githubusercontent.com/brunodev85/winlator/main/installable_components/%s";
+
+    /**
+     * Pinned to an immutable commit instead of a moving branch, and every file fetched
+     * from it is verified against assets/component_checksums.json before it is extracted
+     * (see ComponentChecksums). Upstream pointed this at .../winlator/main with no
+     * integrity check at all, so any commit pushed there would be installed unverified.
+     *
+     * Bump this together with scripts/upstream.env and re-run
+     * scripts/refresh-checksums.sh && scripts/gen-component-checksums.sh.
+     */
+    private static final String COMPONENTS_COMMIT = "5949297d9dc83ad24ce3f5119fe382da7c899a78";
+    private static final String INSTALLABLE_COMPONENTS_URL =
+        "https://raw.githubusercontent.com/brunodev85/winlator/"+COMPONENTS_COMMIT+"/installable_components/%s";
 
     public enum Type {
         BOX64, TURNIP, DXVK, VKD3D, WINED3D, SOUNDFONT, ADRENOTOOLS_DRIVER;
@@ -230,13 +243,29 @@ public abstract class GeneralComponents {
 
     private static void downloadComponentFile(final Type type, final String filename, final Spinner spinner, final String defaultItem) {
         final Activity activity = (Activity)spinner.getContext();
-        File destination = new File(getComponentDir(type, activity), filename);
+        final File destination = new File(getComponentDir(type, activity), filename);
         if (destination.isFile()) destination.delete();
-        HttpUtils.download(activity, String.format(INSTALLABLE_COMPONENTS_URL, type.lowerName()+"/"+filename), destination, (success) -> {
-            if (success) {
-                loadSpinner(type, spinner, parseDisplayText(type, filename), defaultItem);
+        final String componentKey = type.lowerName()+"/"+filename;
+
+        HttpUtils.download(activity, String.format(INSTALLABLE_COMPONENTS_URL, componentKey), destination, (success) -> {
+            if (!success) {
+                AppUtils.showToast(activity, R.string.a_network_error_occurred);
+                return;
             }
-            else AppUtils.showToast(activity, R.string.a_network_error_occurred);
+            // Hashing tens of megabytes on the UI thread would ANR, and HttpUtils
+            // delivers this callback on the UI thread.
+            Executors.newSingleThreadExecutor().execute(() -> {
+                final int error = ComponentChecksums.verify(activity, componentKey, destination);
+                activity.runOnUiThread(() -> {
+                    if (error == 0) {
+                        loadSpinner(type, spinner, parseDisplayText(type, filename), defaultItem);
+                    }
+                    else {
+                        if (destination.isFile()) destination.delete();
+                        AppUtils.showToast(activity, error);
+                    }
+                });
+            });
         });
     }
 

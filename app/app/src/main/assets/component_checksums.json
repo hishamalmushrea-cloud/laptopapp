@@ -1,0 +1,22 @@
+{
+  "_comment": "Pinned SHA-256 for every installable component. Generated from scripts/assets.sha256 (scripts/gen-component-checksums.sh). Do not edit by hand.",
+  "box64/box64-0.3.3.tzst": "0aa1deef71ac392c93f30e96523fe4b6c0fc5e59e1e31247f9074b50877a8761",
+  "box64/box64-0.3.5.tzst": "97f813d3f3b8aaf3ca1b8721db2bb5149a03171b1593b47d69862f03b4dd39c0",
+  "box64/box64-0.3.7.tzst": "2f78d547fac9d5c01a4d935c51c24a035d63236d0c739b44b59f2da2ae30de74",
+  "dxvk/dxvk-0.96.tzst": "d9131ce35b39d775fcac627c0a8093896091e99247be5354cf351e449fd7cbce",
+  "dxvk/dxvk-1.4.2.tzst": "14988a4be1581a1bf43571b164d619efbe927d9e15ad2174c256a2cff42a4311",
+  "dxvk/dxvk-1.7.2.tzst": "a5d72f5b108faf8476f76d8fedd790bf9cabe361bb26b44286fed62d86a31f00",
+  "dxvk/dxvk-2.2.tzst": "4fb3616bf9d2d89a42edf1045339b84a24e149fea5dc69635f6bc8cf7c0ad718",
+  "dxvk/dxvk-2.3.1.tzst": "0e1104e1ebf34c0fd4d8f5e7d016ff6abcd6a5c6379120e022e5388983e47423",
+  "dxvk/dxvk-2.5.2.tzst": "c311f79528456eb6e8be728ff8618c132e54f66eddffd43a86dfa46b030877ba",
+  "dxvk/dxvk-2.6.1.tzst": "29a198dbc4a9e58519d4942a3725850ed23ccac36ee92d73415d5c0528a3e4b8",
+  "turnip/turnip-24.1.0.tzst": "96989279ac6e440f1c2ae73dbf7bee05b754345fa45dee905822e2a5e97576a4",
+  "turnip/turnip-25.0.0.tzst": "4a57d0fe980b3685a0e36326de8bf9d30de86075fa4e934213b8b8cfde8f492e",
+  "turnip/turnip-26.0.3.tzst": "085e05496ccf5056249d96f59f51d1ec3521fe52106e7926ad08c00dbe75c9c1",
+  "vkd3d/vkd3d-2.12.tzst": "9929ee5a3347c927b6becf635761bf3c47227ad96c3e4048b0ad1573d054bf09",
+  "vkd3d/vkd3d-2.14.1.tzst": "3d37bc37845268238201a98b749a99fb6376575efd58f3530270998a95f3a5e2",
+  "vkd3d/vkd3d-3.0b.tzst": "37bc0549e4c6f7eb291391c4e2894cbdb6346e3d4c4db547fba8b0df77a2344b",
+  "wined3d/wined3d-10.0.tzst": "6b85af76c76ac11ca08fd96b4547eae3b4fbf11825a93f918fcd9b360b3bdb9e",
+  "wined3d/wined3d-4.21.tzst": "48f2479432faf7b92de35816e007cd5dc0592c4dd2a507872023b0925cf830f3",
+  "wined3d/wined3d-7.8.tzst": "7cef3d0d1c348a2b63fa4be8013d8905ddbe9e098528eda2a82e7c5811b5fbc7"
+}

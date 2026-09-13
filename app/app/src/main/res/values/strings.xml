@@ -348,4 +348,6 @@
     <string name="ddraw_wrapper" translatable="false">DDraw Wrapper</string>
     <string name="renderer">Renderer</string>
     <string name="default_no_override">Default (No override)</string>
+    <string name="component_checksum_unknown">This component is not in the pinned checksum list, so it was not installed.</string>
+    <string name="component_checksum_mismatch">Checksum verification failed. The downloaded file was discarded.</string>
 </resources>

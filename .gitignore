@@ -43,3 +43,8 @@ captures/
 .idea/
 *.iml
 .DS_Store
+
+# Stale Python bytecode caches (upstream accidentally committed two .pyc files
+# under app/app/src/main/cpp/virglrenderer; they are build artifacts)
+__pycache__/
+*.pyc

@@ -65,6 +65,10 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ hashFiles('app/**/build.gradle', 'app/gradle/wrapper/gradle-wrapper.properties') }}
 
+      - name: Unit tests
+        working-directory: app
+        run: ./gradlew --no-daemon testDebugUnitTest
+
       - name: Build
         working-directory: app
         run: ./gradlew --no-daemon assembleDebug
