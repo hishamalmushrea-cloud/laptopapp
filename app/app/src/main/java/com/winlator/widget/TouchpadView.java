@@ -41,6 +41,8 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     private boolean pinchZooming = false;
     private Finger activeTouchFinger;
     private Finger longPressFinger;
+    /** Assigned in the constructor: a field initializer would read xServer before it is set. */
+    private final Runnable longPressRunnable;
     private Finger fingerPointerButtonLeft;
     private Finger fingerPointerButtonRight;
     private float scrollAccumY = 0;
@@ -52,6 +54,7 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     public TouchpadView(Context context, XServer xServer, boolean capturePointerOnExternalMouse) {
         super(context);
         this.xServer = xServer;
+        this.longPressRunnable = this::handleLongPress;
         setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setBackground(createTransparentBackground());
         setClickable(true);
@@ -356,7 +359,7 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     }
 
     /** A finger held still long enough becomes a right click instead of a left one. */
-    private final Runnable longPressRunnable = () -> {
+    private void handleLongPress() {
         Finger finger = longPressFinger;
         if (finger == null || numFingers != 1 || finger.travelDistance() > MAX_TAP_TRAVEL_DISTANCE) return;
         if (xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_LEFT)) {
@@ -364,7 +367,7 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
             fingerPointerButtonLeft = null;
         }
         pressPointerButtonRight(finger);
-    };
+    }
 
     private void releaseTouchButtons() {
         if (fingerPointerButtonLeft != null) releasePointerButtonLeft(fingerPointerButtonLeft);
