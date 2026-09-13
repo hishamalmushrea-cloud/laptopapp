@@ -40,6 +40,13 @@
       كـ annotation وتُفشل البناء إذا كان صفرًا — فلا يعود رقمًا مكتوبًا يدويًا يمكن أن يتقادم.
 - [x] `GameProfileMatcherTest` (‏9 دوال / 37 تحققًا) — كل قيمة متوقعة فيها أُعيد اشتقاقها
       بمحاكاة مستقلة على قائمة الأسماء الحقيقية قبل كتابتها، لا من الذاكرة.
+- [x] **إعادة تسمية التطبيق إلى `Mushrea.PC`** — اسم العرض (`app_name` في en/pt/ru)
+      و`applicationId` صار `com.mushrea.pc`، واسم ملف الـAPK صار `Mushrea.PC-<وسم>.apk`.
+      **بقي `namespace` و`package=` في الـManifest على `com.winlator` عمدًا**: في AGP هما
+      منفصلان عن `applicationId`، وتغييرهما كان سيكسر ‏43 ملفًا تستورد `com.winlator.R`.
+      وكذلك بقي authority الـFileProvider (`com.winlator.FileProvider`) لأنه مكتوب حرفيًا
+      في `FileUtils:413` لا مشتقًا من `getPackageName()`. **النتيجة: التطبيق صار هوية
+      منفصلة — لا يرث حاويات النسخة القديمة ولا إعداداتها.**
 - [ ] الخطوة التالية: `GraphicsDrivers.parseIdentifiers/parseConfigs` و`DefaultVersion.DXVK(...)`.
 
 ## المرحلة 1 — ميزات مطلوبة مجتمعيًا (من قضايا upstream)

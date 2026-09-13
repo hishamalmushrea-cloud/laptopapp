@@ -105,7 +105,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: winlator-debug-apk
+          name: mushrea-pc-debug-apk
           path: |
             app/app/build/outputs/apk/debug/*.apk
             SHA256SUMS.txt
@@ -123,7 +123,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: winlator-debug-apk
+          name: mushrea-pc-debug-apk
           path: dist
 
       # NOTE: the sandbox this repo is maintained from cannot read Actions logs
@@ -155,7 +155,7 @@ jobs:
             *)           tag="dev-$(date -u +%Y%m%d)-${GITHUB_SHA:0:7}"
                          target_args=(--target "$GITHUB_REF_NAME") ;;
           esac
-          apk="Winlator-laptopapp-${tag}.apk"
+          apk="Mushrea.PC-${tag}.apk"
           cp "$apk_src" "$apk" || err "cp $apk_src failed"
           sha256sum "$apk" > SHA256SUMS.txt || err "sha256sum failed"
           cat SHA256SUMS.txt
