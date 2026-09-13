@@ -24,6 +24,7 @@
     <string name="unable_to_import_container">Unable to import container</string>
     <string name="wine_log">Wine Log</string>
     <string name="no_wine_log_yet">No log yet. Run a program in this container first.</string>
+    <string name="controls_profile_selected_automatically">Control profile "%s" selected automatically</string>
     <string name="installing_system_files">Installing System Files...</string>
     <string name="updating_system_files">Updating System Files...</string>
     <string name="starting_up">Starting up...</string>

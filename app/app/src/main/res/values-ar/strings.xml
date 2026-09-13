@@ -23,6 +23,7 @@
     <string name="unable_to_import_container">تعذّر استيراد الحاوية</string>
     <string name="wine_log">سجل Wine</string>
     <string name="no_wine_log_yet">لا يوجد سجل بعد. شغّل برنامجًا في هذه الحاوية أولًا.</string>
+    <string name="controls_profile_selected_automatically">تم اختيار ملف تعريف التحكم «%s» تلقائيًا</string>
     <string name="installing_system_files">جارٍ تثبيت ملفات النظام…</string>
     <string name="updating_system_files">جارٍ تحديث ملفات النظام…</string>
     <string name="starting_up">جارٍ البدء…</string>

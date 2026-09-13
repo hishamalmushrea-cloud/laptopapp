@@ -21,10 +21,14 @@ import com.winlator.container.DXWrapperPicker;
 import com.winlator.core.EnvVars;
 import com.winlator.container.GraphicsDriverPicker;
 import com.winlator.core.FileUtils;
+import com.winlator.core.GameProfileMatcher;
 import com.winlator.core.StringUtils;
 import com.winlator.core.WineUtils;
 import com.winlator.inputcontrols.ControlsProfile;
 import com.winlator.inputcontrols.InputControlsManager;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.winlator.widget.EnvVarsView;
 import com.winlator.win32.MSLink;
 import com.winlator.win32.PEParser;
@@ -32,8 +36,10 @@ import com.winlator.winhandler.GamepadHandler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ShortcutSettingsDialog extends ContentDialog {
+    private static final String PROFILE_LIBRARY_DIR = "inputcontrols/library/";
     private final ShortcutsFragment fragment;
     private final Shortcut shortcut;
     private InputControlsManager inputControlsManager;
@@ -199,19 +205,71 @@ public class ShortcutSettingsDialog extends ContentDialog {
 
     private void loadControlsProfileSpinner(Spinner spinner, String selectedValue) {
         final Context context = fragment.getContext();
+        int selectedId = Integer.parseInt(selectedValue);
+
+        // Upstream #2000: when the shortcut has no profile of its own yet, offer the
+        // bundled profile that matches this executable instead of making the user hunt
+        // for it among the 53 that ship in the APK.
+        String autoSelectedName = selectedId == 0 ? autoMatchControlProfile(context) : null;
+
         final ArrayList<ControlsProfile> profiles = inputControlsManager.getProfiles(true);
         ArrayList<String> values = new ArrayList<>();
         values.add(context.getString(R.string.none));
 
         int selectedPosition = 0;
-        int selectedId = Integer.parseInt(selectedValue);
         for (int i = 0; i < profiles.size(); i++) {
             ControlsProfile profile = profiles.get(i);
-            if (profile.id == selectedId) selectedPosition = i + 1;
+            if (profile.id == selectedId || profile.getName().equals(autoSelectedName)) selectedPosition = i + 1;
             values.add(profile.getName());
+        }
+
+        if (selectedId == 0 && selectedPosition > 0) {
+            AppUtils.showToast(context, context.getString(R.string.controls_profile_selected_automatically, values.get(selectedPosition)));
         }
 
         spinner.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, values));
         spinner.setSelection(selectedPosition, false);
+    }
+
+    /**
+     * Finds the bundled control profile belonging to this shortcut's game and makes sure
+     * it is installed, returning its name - or null when nothing matches confidently.
+     *
+     * Only ever adds a profile; an existing one is never renamed, replaced or removed.
+     */
+    private String autoMatchControlProfile(Context context) {
+        ArrayList<String> library = readProfileLibraryNames(context);
+        if (library.isEmpty()) return null;
+
+        String match = GameProfileMatcher.findBestMatch(shortcut.path, library);
+        if (match == null) match = GameProfileMatcher.findBestMatch(shortcut.name, library);
+        if (match == null) return null;
+
+        for (ControlsProfile profile : inputControlsManager.getProfiles(true)) {
+            if (profile.getName().equalsIgnoreCase(match)) return profile.getName();
+        }
+
+        String content = FileUtils.readString(context, PROFILE_LIBRARY_DIR+match+".icp");
+        if (content == null) return null;
+        try {
+            // Reading and parsing one small bundled file; importProfile assigns the new
+            // id and appends to the already-loaded profile list.
+            ControlsProfile imported = inputControlsManager.importProfile(new JSONObject(content));
+            return imported != null ? imported.getName() : null;
+        }
+        catch (JSONException e) {
+            return null;
+        }
+    }
+
+    private ArrayList<String> readProfileLibraryNames(Context context) {
+        ArrayList<String> names = new ArrayList<>();
+        String index = FileUtils.readString(context, PROFILE_LIBRARY_DIR+"index.txt");
+        if (index == null) return names;
+        for (String line : Arrays.asList(index.split("\\r?\\n"))) {
+            String name = line.trim();
+            if (name.endsWith(".icp")) names.add(name.substring(0, name.length()-4));
+        }
+        return names;
     }
 }
