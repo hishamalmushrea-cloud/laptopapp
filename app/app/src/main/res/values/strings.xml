@@ -101,6 +101,7 @@
     <string name="duplicate">Duplicate</string>
     <string name="about">About</string>
     <string name="credits_and_third_party_apps">Credits and Third-party apps</string>
+    <string name="open_source_licenses">Open-source Licenses</string>
     <string name="external_controllers">External Controllers</string>
     <string name="graphics_driver">Graphics Driver</string>
     <string name="audio_driver">Audio Driver</string>
