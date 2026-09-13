@@ -90,6 +90,7 @@
     <string name="duplicate">Duplicar</string>
     <string name="about">Sobre</string>
     <string name="credits_and_third_party_apps">Créditos e Apps de Terceiros</string>
+    <string name="developer">Desenvolvedor</string>
     <string name="external_controllers">Controles Externos</string>
     <string name="graphics_driver">Driver Gráfico</string>
     <string name="audio_driver">Driver de Áudio</string>

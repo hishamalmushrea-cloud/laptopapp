@@ -100,6 +100,7 @@
     <string name="duplicate">نسخ</string>
     <string name="about">حول التطبيق</string>
     <string name="credits_and_third_party_apps">الشكر وتطبيقات الطرف الثالث</string>
+    <string name="developer">المطوّر</string>
     <string name="open_source_licenses">تراخيص مفتوحة المصدر</string>
     <string name="external_controllers">وحدات التحكم الخارجية</string>
     <string name="graphics_driver">تعريف الرسوم</string>

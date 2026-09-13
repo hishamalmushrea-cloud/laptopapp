@@ -49,11 +49,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textStyle="bold"
-            android:text="@string/credits_and_third_party_apps" />
+            android:text="@string/developer" />
 
         <TextView
-            android:id="@+id/TVCreditsAndThirdPartyApps"
+            android:id="@+id/TVDeveloperName"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:text="@string/developer_name" />
+
+        <TextView
+            android:id="@+id/TVDeveloperEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="?attr/colorPrimaryVariant"
+            android:autoLink="email"
+            android:text="@string/developer_email" />
     </LinearLayout>
 </LinearLayout>

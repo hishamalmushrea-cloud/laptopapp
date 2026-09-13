@@ -90,6 +90,7 @@
     <string name="duplicate">Дублировать</string>
     <string name="about">О программе</string>
     <string name="credits_and_third_party_apps">Авторы и сторонние приложения</string>
+    <string name="developer">Разработчик</string>
     <string name="external_controllers">Внешние контроллеры</string>
     <string name="graphics_driver">Графический драйвер</string>
     <string name="audio_driver">Аудио драйвер</string>
