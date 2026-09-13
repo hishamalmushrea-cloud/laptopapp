@@ -21,16 +21,22 @@
         android:allowAudioPlaybackCapture="true"
         android:label="@string/app_name">
 
-        <activity android:name="com.winlator.MainActivity"
-            android:theme="@style/AppThemeDark"
+        <activity android:name="com.winlator.SplashActivity"
+            android:theme="@style/AppThemeSplash"
             android:exported="true"
-            android:screenOrientation="sensor"
+            android:screenOrientation="portrait"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|density|navigation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity android:name="com.winlator.MainActivity"
+            android:theme="@style/AppThemeDark"
+            android:exported="false"
+            android:screenOrientation="sensor"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|density|navigation"/>
 
         <activity android:name="com.winlator.XServerDisplayActivity"
             android:exported="false"
