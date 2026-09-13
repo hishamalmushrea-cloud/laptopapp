@@ -1,6 +1,7 @@
 package com.winlator.contentdialog;
 
 import android.content.Context;
+import android.view.View;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.view.ViewGroup;
@@ -63,7 +64,7 @@ public class AboutDialog extends ContentDialog {
         scroll.addView(text);
 
         FrameLayout frame = licenses.getContentView().findViewById(R.id.FrameLayout);
-        frame.setVisibility(VISIBLE);
+        frame.setVisibility(View.VISIBLE);
         frame.addView(scroll, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         licenses.show();
     }

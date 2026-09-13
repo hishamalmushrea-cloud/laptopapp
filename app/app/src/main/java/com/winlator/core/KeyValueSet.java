@@ -46,10 +46,6 @@ public class KeyValueSet implements Iterable<String[]> {
         return get(key, "");
     }
 
-    public boolean isEmpty() {
-        return data == null || data.isEmpty();
-    }
-
     public String get(String key, String fallback) {
         if (data.isEmpty()) return fallback;
         for (String[] keyValue : this) if (keyValue[0].equals(key)) return keyValue[1];
