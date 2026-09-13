@@ -1,6 +1,7 @@
 package com.winlator.container;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Handler;
 
 import com.winlator.R;
@@ -15,6 +16,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Executors;
@@ -93,6 +96,86 @@ public class ContainerManager {
             removeContainer(container);
             handler.post(callback);
         });
+    }
+
+    public void exportContainerAsync(final Container container, final Uri destination, final Callback<Boolean> callback) {
+        final Handler handler = new Handler();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            final boolean success = exportContainer(container, destination);
+            handler.post(() -> callback.call(success));
+        });
+    }
+
+    /**
+     * Packs a container into a single .tzst archive.
+     *
+     * The ".container" config file lives inside the container directory, so one
+     * archive carries both the files and the settings - nothing else has to travel
+     * alongside it. Children are archived without the "xuser-N/" prefix so the
+     * archive can be extracted straight back into a fresh container directory.
+     *
+     * Read-only with respect to the source container.
+     */
+    private boolean exportContainer(Container container, Uri destination) {
+        File rootDir = container.getRootDir();
+        if (rootDir == null || !rootDir.isDirectory()) return false;
+
+        File[] children = rootDir.listFiles();
+        if (children == null || children.length == 0) return false;
+
+        try (OutputStream out = context.getContentResolver().openOutputStream(destination, "wt")) {
+            if (out == null) return false;
+            TarCompressorUtils.compress(TarCompressorUtils.Type.ZSTD, children, out, 3);
+            return true;
+        }
+        catch (IOException e) {
+            return false;
+        }
+    }
+
+    public void importContainerAsync(final Uri source, final Callback<Container> callback) {
+        final Handler handler = new Handler();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            final Container container = importContainer(source);
+            handler.post(() -> callback.call(container));
+        });
+    }
+
+    /**
+     * Always creates a NEW container: an existing one is never opened for writing, so
+     * a truncated or foreign archive can at worst leave nothing behind.
+     */
+    private Container importContainer(Uri source) {
+        int id = maxContainerId + 1;
+        File dstDir = new File(homeDir, RootFS.USER+"-"+id);
+        if (!dstDir.isDirectory() && !dstDir.mkdirs()) return null;
+
+        // extract() already chmods every entry to 0771, so no listener is needed here.
+        boolean extracted = TarCompressorUtils.extract(TarCompressorUtils.Type.ZSTD, context, source, dstDir);
+
+        Container container = new Container(id);
+        container.setRootDir(dstDir);
+        File configFile = container.getConfigFile();
+
+        if (!extracted || !configFile.isFile()) {
+            FileUtils.delete(dstDir);
+            return null;
+        }
+
+        try {
+            JSONObject data = new JSONObject(FileUtils.readString(configFile));
+            container.loadData(data);
+            container.setName(container.getName()+" ("+context.getString(R.string._import)+")");
+            container.saveData();
+        }
+        catch (JSONException | NullPointerException e) {
+            FileUtils.delete(dstDir);
+            return null;
+        }
+
+        maxContainerId++;
+        containers.add(container);
+        return container;
     }
 
     private Container createContainer(JSONObject data) {

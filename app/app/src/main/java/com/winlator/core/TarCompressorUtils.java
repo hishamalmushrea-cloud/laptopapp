@@ -80,6 +80,17 @@ public abstract class TarCompressorUtils {
     }
 
     public static void compress(Type type, File[] files, File destination, int level) {
+        try {
+            compress(type, files, new FileOutputStream(destination), level);
+        }
+        catch (FileNotFoundException e) {}
+    }
+
+    /**
+     * Streams the archive straight into an OutputStream, so exporting to a
+     * user-picked location needs no intermediate copy in the cache dir.
+     */
+    public static void compress(Type type, File[] files, OutputStream destination, int level) {
         try (OutputStream outStream = getCompressorOutputStream(type, destination, level);
              TarArchiveOutputStream tar = new TarArchiveOutputStream(outStream)) {
             tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
@@ -237,12 +248,12 @@ public abstract class TarCompressorUtils {
         return null;
     }
 
-    private static OutputStream getCompressorOutputStream(Type type, File destination, int level) throws IOException {
+    private static OutputStream getCompressorOutputStream(Type type, OutputStream destination, int level) {
         if (type == Type.XZ) {
-            return new XZCompressorOutputStream(new BufferedOutputStream(new FileOutputStream(destination), StreamUtils.BUFFER_SIZE), level);
+            return new XZCompressorOutputStream(new BufferedOutputStream(destination, StreamUtils.BUFFER_SIZE), level);
         }
         else if (type == Type.ZSTD) {
-            return new ZstdCompressorOutputStream(new BufferedOutputStream(new FileOutputStream(destination), StreamUtils.BUFFER_SIZE), level);
+            return new ZstdCompressorOutputStream(new BufferedOutputStream(destination, StreamUtils.BUFFER_SIZE), level);
         }
         return null;
     }

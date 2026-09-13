@@ -13,6 +13,14 @@
     <string name="creating_container">جارٍ إنشاء الحاوية…</string>
     <string name="removing_container">جارٍ إزالة الحاوية…</string>
     <string name="duplicating_container">جارٍ نسخ الحاوية…</string>
+    <string name="_import">استيراد</string>
+    <string name="export_container">تصدير الحاوية</string>
+    <string name="import_container">استيراد حاوية</string>
+    <string name="exporting_container">جارٍ تصدير الحاوية…</string>
+    <string name="importing_container">جارٍ استيراد الحاوية…</string>
+    <string name="container_exported">تم تصدير الحاوية</string>
+    <string name="unable_to_export_container">تعذّر تصدير الحاوية</string>
+    <string name="unable_to_import_container">تعذّر استيراد الحاوية</string>
     <string name="installing_system_files">جارٍ تثبيت ملفات النظام…</string>
     <string name="updating_system_files">جارٍ تحديث ملفات النظام…</string>
     <string name="starting_up">جارٍ البدء…</string>

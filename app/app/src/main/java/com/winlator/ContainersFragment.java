@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.winlator.container.Container;
+import com.winlator.core.AppUtils;
 import com.winlator.container.ContainerManager;
 import com.winlator.contentdialog.ContentDialog;
 import com.winlator.contentdialog.StorageInfoDialog;
@@ -40,6 +41,9 @@ public class ContainersFragment extends Fragment {
     private RecyclerView recyclerView;
     private TextView emptyTextView;
     private ContainerManager manager;
+    private Container pendingExportContainer;
+    private static final int EXPORT_CONTAINER_REQUEST_CODE = 1001;
+    private static final int IMPORT_CONTAINER_REQUEST_CODE = 1002;
     private PreloaderDialog preloaderDialog;
 
     @Override
@@ -94,7 +98,50 @@ public class ContainersFragment extends Fragment {
                 .commit();
             return true;
         }
+        else if (menuItem.getItemId() == R.id.menu_item_import_container) {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/zstd", "application/octet-stream", "application/x-zstd"});
+            startActivityFromFragment(this, intent, IMPORT_CONTAINER_REQUEST_CODE);
+            return true;
+        }
         else return super.onOptionsItemSelected(menuItem);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+            pendingExportContainer = null;
+            return;
+        }
+        Uri uri = data.getData();
+
+        if (requestCode == EXPORT_CONTAINER_REQUEST_CODE) {
+            final Container container = pendingExportContainer;
+            pendingExportContainer = null;
+            if (container == null) return;
+
+            preloaderDialog.show(R.string.exporting_container);
+            manager.exportContainerAsync(container, uri, (success) -> {
+                preloaderDialog.close();
+                if (success) {
+                    AppUtils.showToast(getContext(), R.string.container_exported);
+                }
+                else AppUtils.showToast(getContext(), R.string.unable_to_export_container);
+            });
+        }
+        else if (requestCode == IMPORT_CONTAINER_REQUEST_CODE) {
+            preloaderDialog.show(R.string.importing_container);
+            manager.importContainerAsync(uri, (container) -> {
+                preloaderDialog.close();
+                if (container != null) {
+                    loadContainersList();
+                }
+                else AppUtils.showToast(getContext(), R.string.unable_to_import_container);
+            });
+        }
+        else super.onActivityResult(requestCode, resultCode, data);
     }
 
     private class ContainersAdapter extends RecyclerView.Adapter<ContainersAdapter.ViewHolder> {
@@ -169,6 +216,14 @@ public class ContainersFragment extends Fragment {
                                 loadContainersList();
                             });
                         });
+                        break;
+                    case R.id.menu_item_export:
+                        pendingExportContainer = container;
+                        Intent exportIntent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                        exportIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                        exportIntent.setType("application/zstd");
+                        exportIntent.putExtra(Intent.EXTRA_TITLE, container.getName().replaceAll("[^A-Za-z0-9._ -]", "_")+".tzst");
+                        startActivityFromFragment(ContainersFragment.this, exportIntent, EXPORT_CONTAINER_REQUEST_CODE);
                         break;
                     case R.id.menu_item_info:
                         (new StorageInfoDialog(activity, container)).show();

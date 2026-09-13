@@ -7,4 +7,9 @@
         android:id="@+id/menu_item_add"
         android:title="@string/add"
         app:showAsAction="ifRoom" />
+    <item
+        android:icon="@drawable/icon_popup_menu_folder_open"
+        android:id="@+id/menu_item_import_container"
+        android:title="@string/import_container"
+        app:showAsAction="ifRoom" />
 </menu>

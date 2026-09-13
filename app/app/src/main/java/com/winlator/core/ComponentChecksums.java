@@ -24,6 +24,13 @@ import java.io.File;
 public abstract class ComponentChecksums {
     public static final String ASSET_FILE = "component_checksums.json";
 
+    /**
+     * Single source of truth for the immutable upstream commit every remote fetch is
+     * pinned to. Bump it together with scripts/upstream.env, then re-run
+     * scripts/refresh-checksums.sh and scripts/gen-component-checksums.sh.
+     */
+    public static final String UPSTREAM_COMMIT = "5949297d9dc83ad24ce3f5119fe382da7c899a78";
+
     private static JSONObject cache;
 
     /** Loaded once; the manifest is tiny (a few KB) and immutable for the APK's life. */

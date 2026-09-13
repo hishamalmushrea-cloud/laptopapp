@@ -36,9 +36,8 @@ public abstract class GeneralComponents {
      * Bump this together with scripts/upstream.env and re-run
      * scripts/refresh-checksums.sh && scripts/gen-component-checksums.sh.
      */
-    private static final String COMPONENTS_COMMIT = "5949297d9dc83ad24ce3f5119fe382da7c899a78";
     private static final String INSTALLABLE_COMPONENTS_URL =
-        "https://raw.githubusercontent.com/brunodev85/winlator/"+COMPONENTS_COMMIT+"/installable_components/%s";
+        "https://raw.githubusercontent.com/brunodev85/winlator/"+ComponentChecksums.UPSTREAM_COMMIT+"/installable_components/%s";
 
     public enum Type {
         BOX64, TURNIP, DXVK, VKD3D, WINED3D, SOUNDFONT, ADRENOTOOLS_DRIVER;

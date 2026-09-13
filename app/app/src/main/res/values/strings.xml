@@ -14,6 +14,14 @@
     <string name="creating_container">Creating Container...</string>
     <string name="removing_container">Removing Container...</string>
     <string name="duplicating_container">Duplicating Container...</string>
+    <string name="_import">Import</string>
+    <string name="export_container">Export Container</string>
+    <string name="import_container">Import Container</string>
+    <string name="exporting_container">Exporting Container...</string>
+    <string name="importing_container">Importing Container...</string>
+    <string name="container_exported">Container exported</string>
+    <string name="unable_to_export_container">Unable to export container</string>
+    <string name="unable_to_import_container">Unable to import container</string>
     <string name="installing_system_files">Installing System Files...</string>
     <string name="updating_system_files">Updating System Files...</string>
     <string name="starting_up">Starting up...</string>
