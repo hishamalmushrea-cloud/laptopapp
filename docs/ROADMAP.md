@@ -27,8 +27,11 @@
 ### 2. اختبارات للمنطق القابل للاختبار — **بدأ**
 - [x] `junit 4.13.2` + `ChecksumUtilsTest` (‏7 حالات) + خطوة `testDebugUnitTest` في CI
       قبل `assembleDebug`. أول اختبار ناجح في تاريخ المشروع.
-- [ ] الخطوة التالية: `GraphicsDrivers.parseIdentifiers/parseConfigs`،
-      `DefaultVersion.DXVK(...)`، `KeyValueSet` — منطق نصّي خالص لا يحتاج محاكيًا.
+- [x] ‏`KeyValueSetTest` ‏(‏10 حالات) — وأثناء كتابته ظهر **خللان حقيقيان** في `KeyValueSet`:
+      مقطع بلا `=` كان يُسقط `substring(index+1, end)` باستثناء، و`indexOfKey` كان يستدعي
+      `substring(start, -1)`؛ أي أن زوجًا واحدًا تالفًا كان يُفسد قراءة السلسلة كلها —
+      وهذه السلاسل تأتي من بيانات مستوردة/مُنزَّلة. أُصلحا وثُبّتا باختبار.
+- [ ] الخطوة التالية: `GraphicsDrivers.parseIdentifiers/parseConfigs` و`DefaultVersion.DXVK(...)`.
 
 ## المرحلة 1 — ميزات مطلوبة مجتمعيًا (من قضايا upstream)
 
