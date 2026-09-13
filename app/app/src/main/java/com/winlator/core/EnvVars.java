@@ -22,7 +22,12 @@ public class EnvVars implements Iterable<String> {
     public void putAll(String[] items) {
         if (items == null) return;
         for (String item : items) {
+            if (item == null) continue;
             int index = item.indexOf("=");
+            // A token with no '=' (or an empty name) is malformed input from user/imported
+            // data; skipping it keeps the whole set readable instead of crashing, mirroring
+            // the KeyValueSet hardening.
+            if (index <= 0) continue;
             String name = item.substring(0, index);
             String value = item.substring(index+1);
             data.put(name, value);
