@@ -32,7 +32,6 @@ import com.winlator.contentdialog.ContentDialog;
 import com.winlator.core.AppUtils;
 import com.winlator.core.Callback;
 import com.winlator.core.FileUtils;
-import com.winlator.core.HttpUtils;
 import com.winlator.inputcontrols.ControlsProfile;
 import com.winlator.inputcontrols.ExternalController;
 import com.winlator.inputcontrols.InputControlsManager;
@@ -45,10 +44,16 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.Executors;
 
 public class InputControlsFragment extends Fragment {
-    private static final String INPUT_CONTROLS_URL = "https://raw.githubusercontent.com/brunodev85/winlator/main/input_controls/%s";
+    /**
+     * Game control profiles ship inside the APK (assets/inputcontrols/library:
+     * 53 profiles, 220 KB). They used to be fetched over HTTP from a moving branch
+     * of the upstream repo, which required connectivity and pulled content that was
+     * never verified.
+     */
+    private static final String PROFILE_LIBRARY_DIR = "inputcontrols/library/";
     private InputControlsManager manager;
     private ControlsProfile currentProfile;
     private Runnable updateLayout;
@@ -224,44 +229,54 @@ public class InputControlsFragment extends Fragment {
         getActivity().startActivityFromFragment(this, intent, MainActivity.OPEN_FILE_REQUEST_CODE);
     }
 
-    private void downloadSelectedProfiles(final Spinner sProfile, String[] items, final ArrayList<Integer> positions) {
+    private void importSelectedProfiles(final Spinner sProfile, final String[] items, final ArrayList<Integer> positions) {
         final MainActivity activity = (MainActivity)getActivity();
-        activity.preloaderDialog.show(R.string.downloading_file);
+        activity.preloaderDialog.show(R.string.loading);
         currentProfile = null;
-        final AtomicInteger processedItemCount = new AtomicInteger();
 
-        for (int position : positions) {
-            HttpUtils.download(String.format(INPUT_CONTROLS_URL, items[position]), (content) -> {
+        // Same threading as before (import used to run in the HTTP callback), and
+        // JSON parsing 53 files is not something to do on the UI thread.
+        Executors.newSingleThreadExecutor().execute(() -> {
+            int imported = 0;
+            for (int position : positions) {
+                String content = FileUtils.readString(activity, PROFILE_LIBRARY_DIR+items[position]);
+                if (content == null) continue;
                 try {
-                    if (content != null) manager.importProfile(new JSONObject(content));
+                    manager.importProfile(new JSONObject(content));
+                    imported++;
                 }
                 catch (JSONException e) {}
-                if (processedItemCount.incrementAndGet() == positions.size()) {
-                    activity.runOnUiThread(() -> {
-                        activity.preloaderDialog.close();
-                        loadProfileSpinner(sProfile);
-                        updateLayout.run();
-                    });
+            }
+
+            final int count = imported;
+            activity.runOnUiThread(() -> {
+                activity.preloaderDialog.close();
+                if (count > 0) {
+                    loadProfileSpinner(sProfile);
+                    updateLayout.run();
                 }
+                else AppUtils.showToast(activity, R.string.unable_to_import_profile);
             });
-        }
+        });
     }
 
     private void downloadProfileList(final Spinner sProfile) {
         final MainActivity activity = (MainActivity)getActivity();
-        activity.preloaderDialog.show(R.string.loading);
-        HttpUtils.download(String.format(INPUT_CONTROLS_URL, "index.txt"), (content) -> activity.runOnUiThread(() -> {
-            activity.preloaderDialog.close();
-            if (content != null) {
-                final String[] items = content.split("\n");
-                ContentDialog.showSelectionList(activity, R.string.import_profile, items, true, (positions) -> {
-                    if (!positions.isEmpty()) {
-                        ContentDialog.confirm(activity, R.string.do_you_want_to_download_the_selected_profiles, () -> downloadSelectedProfiles(sProfile, items, positions));
-                    }
-                });
+        final String content = FileUtils.readString(activity, PROFILE_LIBRARY_DIR+"index.txt");
+        if (content == null) {
+            AppUtils.showToast(activity, R.string.unable_to_import_profile);
+            return;
+        }
+
+        final ArrayList<String> names = new ArrayList<>();
+        for (String line : content.split("\n")) if (!line.trim().isEmpty()) names.add(line.trim());
+        final String[] items = names.toArray(new String[0]);
+
+        ContentDialog.showSelectionList(activity, R.string.import_profile, items, true, (positions) -> {
+            if (!positions.isEmpty()) {
+                ContentDialog.confirm(activity, R.string.do_you_want_to_import_the_selected_profiles, () -> importSelectedProfiles(sProfile, items, positions));
             }
-            else AppUtils.showToast(activity, R.string.a_network_error_occurred);
-        }));
+        });
     }
 
     @Override

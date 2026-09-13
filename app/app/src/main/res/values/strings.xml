@@ -350,4 +350,5 @@
     <string name="default_no_override">Default (No override)</string>
     <string name="component_checksum_unknown">This component is not in the pinned checksum list, so it was not installed.</string>
     <string name="component_checksum_mismatch">Checksum verification failed. The downloaded file was discarded.</string>
+    <string name="do_you_want_to_import_the_selected_profiles">Do you want to import the selected profiles?</string>
 </resources>

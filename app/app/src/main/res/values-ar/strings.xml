@@ -291,4 +291,5 @@
     <string name="default_no_override">افتراضي (بلا تجاوز)</string>
     <string name="component_checksum_unknown">هذا المكوّن غير مدرج في قائمة البصمات المثبّتة، لذلك لم يُثبَّت.</string>
     <string name="component_checksum_mismatch">فشل التحقق من البصمة، وتم تجاهل الملف المُنزَّل.</string>
+    <string name="do_you_want_to_import_the_selected_profiles">هل تريد استيراد الملفات التعريفية المحددة؟</string>
 </resources>
