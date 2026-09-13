@@ -78,6 +78,19 @@ public static final String VORTEK_SERVER_PATH = "/tmp/.vortek/V0";
 | `java/` | 2.0 MB |
 | `res/` | 1.2 MB |
 
+## تصدير / استيراد الحاويات
+
+الحاوية = مجلد `home/xuser-<id>/` داخل image الـ rootfs، وملف الإعدادات `.container`
+**داخله**. لذلك أرشيف `.tzst` واحد يكفي لنقل حاوية كاملة بين جهازين:
+
+- **التصدير**: `TarCompressorUtils.compress(ZSTD, rootDir.listFiles(), outputStream, 3)` —
+  محتوى المجلد بلا بادئة `xuser-N/`، ويُكتب **مباشرة** في الـ`Uri` الذي اختاره المستخدم
+  (أُضيف `overload` لـ`OutputStream` لهذا الغرض)، فلا نسخة مؤقتة بحجم الحاوية في `cacheDir`
+  — مهم لأن الحاوية قد تبلغ عدة غيغابايت.
+- **الاستيراد**: يُستخرج إلى `xuser-<id جديد>`، ثم `loadData()` من `.container`، ويُلحق
+  « (استيراد)» بالاسم، ثم `saveData()` يكتب الـ`id` الجديد. أي فشل (أرشيف ناقص أو بلا
+  `.container` صالح) ⇒ يُحذف المجلد الجديد، ولا تُمسّ أي حاوية قائمة.
+
 ## ملاحظات تقنية تستحق الانتباه
 
 - `AndroidManifest.xml`: `android:extractNativeLibs="true"`، `android:isGame="true"`،
