@@ -274,12 +274,27 @@ public class XServerDisplayActivity extends AppCompatActivity implements Navigat
         setupUI();
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            if (!isGenerateWineprefix()) {
-                setupWineSystemFiles();
-                extractGraphicsDriverFiles();
-                changeWineAudioDriver();
+            try {
+                if (!isGenerateWineprefix()) {
+                    setupWineSystemFiles();
+                    extractGraphicsDriverFiles();
+                    changeWineAudioDriver();
+                }
+                setupXEnvironment();
             }
-            setupXEnvironment();
+            catch (Throwable e) {
+                // Without this the exception is swallowed by the executor's discarded Future
+                // and the "Starting..." dialog hangs forever. Surface it and exit instead.
+                e.printStackTrace();
+                preloaderDialog.closeOnUiThread();
+                final String message = String.valueOf(e);
+                runOnUiThread(() -> new android.app.AlertDialog.Builder(this)
+                    .setTitle("Startup error")
+                    .setMessage(message)
+                    .setCancelable(false)
+                    .setPositiveButton(android.R.string.ok, (dialog, which) -> finish())
+                    .show());
+            }
         });
     }
 
