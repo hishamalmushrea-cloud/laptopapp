@@ -19,8 +19,8 @@ public class StringUtilsTest {
     /** Regression: 1 PB (1024^5) used to throw ArrayIndexOutOfBoundsException (units[] has no PB). */
     @Test public void formatBytesDoesNotCrashBeyondTerabytes() {
         assertEquals("1024.00 TB", StringUtils.formatBytes(1125899906842624L));
-        // Far beyond, still must not throw.
-        assertEquals("9223372036854775807.00 TB", StringUtils.formatBytes(Long.MAX_VALUE));
+        // Far beyond, still must not throw. 2^63 / 2^40 == 2^23 == 8388608.
+        assertEquals("8388608.00 TB", StringUtils.formatBytes(Long.MAX_VALUE));
     }
 
     @Test public void slashHelpersTrimAndAppend() {
