@@ -107,6 +107,8 @@ public class StringUtils {
         if (bytes <= 0) return "0 bytes";
         final String[] units = new String[]{"bytes", "KB", "MB", "GB", "TB"};
         int digitGroups = (int)(Math.log10(bytes) / Math.log10(1024));
+        // Clamp: there is no PB+ unit, so very large values must not index past the array.
+        if (digitGroups > units.length - 1) digitGroups = units.length - 1;
         String suffix = withSuffix ? " "+units[digitGroups] : "";
         return String.format(Locale.ENGLISH, "%.2f", bytes / Math.pow(1024, digitGroups))+suffix;
     }
