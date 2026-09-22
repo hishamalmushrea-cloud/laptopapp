@@ -1,9 +1,15 @@
-# laptopapp
+# 🌟 laptopapp
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/hishamalmushrea-cloud/laptopapp?style=social)](https://github.com/hishamalmushrea-cloud/laptopapp)
-[![GitHub](https://img.shields.io/github/license/hishamalmushrea-cloud/laptopapp)](https://github.com/hishamalmushrea-cloud/laptopapp/blob/main/LICENSE)
+![C](https://img.shields.io/badge/C-A8B9CC?style=for-the-badge&logo=c&logoColor=white) ![Repo Size](https://img.shields.io/github/repo-size/hishamalmushrea-cloud/laptopapp?style=for-the-badge) ![Issues](https://img.shields.io/github/issues/hishamalmushrea-cloud/laptopapp?style=for-the-badge) ![Last Commit](https://img.shields.io/github/last-commit/hishamalmushrea-cloud/laptopapp?style=for-the-badge) [![License](https://img.shields.io/github/license/hishamalmushrea-cloud/laptopapp?style=for-the-badge)](https://github.com/hishamalmushrea-cloud/laptopapp/blob/main/LICENSE)
+
+## 📖 About this Project
+Welcome to the laptopapp repository!
+
+## 🚀 Tech Stack
+- **Primary Language:** C
+
+## 🔗 Connect & Support
 [![Trendshift](https://trendshift.io/api/badge/repositories/4119)](https://trendshift.io/)
-[![Docs Website](https://img.shields.io/badge/Docs-Website-blue?style=for-the-badge&logo=readthedocs)](https://github.com/hishamalmushrea-cloud/laptopapp)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/)
 [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/hishamalmushrea-cloud?style=social)](https://x.com/hishamalmushrea-cloud)
 
