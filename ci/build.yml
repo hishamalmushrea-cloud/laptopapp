@@ -1,0 +1,175 @@
+name: build
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*', 'dev-*']
+    # Docs-only commits do not need a 3.5 minute NDK build.
+    paths-ignore: ['docs/**', '**/*.md']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  assets:
+    name: Verify artifact checksums
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache upstream clones
+        uses: actions/cache@v4
+        with:
+          path: .cache/upstream
+          key: upstream-${{ hashFiles('scripts/upstream.env') }}
+
+      - name: Fetch binary artifacts (~480 MB) and verify sha256
+        run: scripts/fetch-assets.sh
+
+      - name: Re-verify against scripts/assets.sha256
+        run: scripts/fetch-assets.sh --verify-only
+
+  apk:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    needs: assets
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install SDK / NDK / CMake (versions pinned in app/app/build.gradle)
+        run: sdkmanager "platforms;android-35" "build-tools;34.0.0" "ndk;24.0.8215888" "cmake;3.22.1"
+
+      - name: Cache upstream clones
+        uses: actions/cache@v4
+        with:
+          path: .cache/upstream
+          key: upstream-${{ hashFiles('scripts/upstream.env') }}
+
+      - name: Fetch binary artifacts
+        run: scripts/fetch-assets.sh
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('app/**/build.gradle', 'app/gradle/wrapper/gradle-wrapper.properties') }}
+
+      - name: Unit tests
+        working-directory: app
+        run: ./gradlew --no-daemon testDebugUnitTest
+
+      # A green "Unit tests" step only proves Gradle did not fail; this proves how many
+      # tests actually executed, and fails the build if that number is zero.
+      - name: Report executed tests
+        working-directory: app
+        run: |
+          shopt -s nullglob
+          files=(app/build/test-results/testDebugUnitTest/TEST-*.xml)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no test results were produced - nothing was executed"
+            exit 1
+          fi
+          total=0; bad=0
+          for f in "${files[@]}"; do
+            cls=$(basename "$f" .xml); cls=${cls#TEST-}
+            t=$(sed -n 's/.*<testsuite[^>]* tests="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            fl=$(sed -n 's/.*<testsuite[^>]* failures="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            er=$(sed -n 's/.*<testsuite[^>]* errors="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            sk=$(sed -n 's/.*<testsuite[^>]* skipped="\([0-9]*\)".*/\1/p' "$f" | head -1)
+            total=$((total + ${t:-0})); bad=$((bad + ${fl:-0} + ${er:-0} + ${sk:-0}))
+            echo "$cls: ${t:-0} tests"
+          done
+          echo "Executed $total tests across ${#files[@]} classes ($bad failures/errors/skips)"
+          # Annotations are the part of a run that stays readable through the API after
+          # the raw logs have expired, so the count is published there too.
+          echo "::notice title=Unit tests::Executed $total tests across ${#files[@]} classes ($bad failures/errors/skips)"
+          [ "$total" -gt 0 ] || { echo "::error::no tests were executed"; exit 1; }
+
+      - name: Build
+        working-directory: app
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Publish checksums
+        run: sha256sum app/app/build/outputs/apk/debug/*.apk | tee SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mushrea-pc-debug-apk
+          path: |
+            app/app/build/outputs/apk/debug/*.apk
+            SHA256SUMS.txt
+
+  publish:
+    name: Publish APK to Releases
+    runs-on: ubuntu-latest
+    needs: apk
+    # Only on a tag push or a manual run, so ordinary pushes do not spam releases.
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mushrea-pc-debug-apk
+          path: dist
+
+      # NOTE: the sandbox this repo is maintained from cannot read Actions logs
+      # (results-receiver.actions.githubusercontent.com is not reachable), but it
+      # CAN read check-run annotations via api.github.com. So any failure here is
+      # re-emitted as an ::error annotation to stay debuggable.
+      - name: Create GitHub Release with the APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eo pipefail
+          # Any failure becomes a readable check-run annotation (logs are unreachable
+          # from the maintenance sandbox; annotations are not).
+          err() { echo "::error title=publish failed::$(printf '%s' "$*" | tr '\n\r' '  ' | cut -c1-800)"; exit 1; }
+
+          echo "--- environment ---"
+          gh --version 2>&1 | head -1 || err "gh CLI not available"
+          echo "GITHUB_REF=$GITHUB_REF  GITHUB_REF_NAME=$GITHUB_REF_NAME"
+
+          # upload-artifact@v4 with multiple paths keeps the least-common-ancestor
+          # directory layout, so the APK is NOT at dist/ root - search for it.
+          ls -laR dist || err "dist/ is missing; download-artifact produced nothing"
+          apk_src=$(find dist -name '*.apk' -type f -print -quit)
+          [ -n "$apk_src" ] || err "no .apk under dist/; found: $(find dist -type f | tr '\n' ' ' | cut -c1-500)"
+          echo "using $apk_src"
+
+          case "$GITHUB_REF" in
+            refs/tags/*) tag="$GITHUB_REF_NAME"; target_args=() ;;
+            *)           tag="dev-$(date -u +%Y%m%d)-${GITHUB_SHA:0:7}"
+                         target_args=(--target "$GITHUB_REF_NAME") ;;
+          esac
+          apk="Mushrea.PC-${tag}.apk"
+          cp "$apk_src" "$apk" || err "cp $apk_src failed"
+          sha256sum "$apk" > SHA256SUMS.txt || err "sha256sum failed"
+          cat SHA256SUMS.txt
+          ls -la "$apk"
+
+          echo "--- gh release create ---"
+          if out=$(gh release create "$tag" "$apk" SHA256SUMS.txt \
+                     ${target_args[@]+"${target_args[@]}"} \
+                     --title "Build ${tag}" \
+                     --notes "Built by CI from ${GITHUB_SHA}. Debug-signed APK, install directly." \
+                     --prerelease 2>&1); then
+            echo "$out"
+          else
+            rc=$?
+            echo "$out"
+            err "gh release create (exit ${rc}): ${out}"
+          fi
